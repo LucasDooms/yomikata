@@ -5,7 +5,6 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
-import com.jehutyno.yomikata.repository.database.YomikataDatabase
 import com.jehutyno.yomikata.repository.migration.SqliteTestHelper
 import com.jehutyno.yomikata.repository.migration.Wordv13
 import org.junit.After
