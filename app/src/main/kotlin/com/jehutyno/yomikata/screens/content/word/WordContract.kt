@@ -15,13 +15,15 @@ import com.jehutyno.yomikata.presenters.WordInQuizInterface
 interface WordContract {
 
     interface View {
-        fun displayWords(words: List<Triple<Word, List<KanjiSoloRadical?>, Sentence>>)
+        fun displayWords(words: List<Word>)
     }
 
     interface Presenter : BasePresenter, SelectionsInterface, WordInQuizInterface {
         val words : LiveData<List<Word>>?
         suspend fun getWordKanjiSoloRadicalSentenceList(words: List<Word>)
                                             : List<Triple<Word, List<KanjiSoloRadical?>, Sentence>>
+        suspend fun getKanjiSoloList(word: Word): List<KanjiSoloRadical>
+        suspend fun getSentence(word: Word): Sentence
         suspend fun levelUp(id: Long, points: Int)
         suspend fun levelDown(id: Long, points: Int)
     }

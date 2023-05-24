@@ -105,7 +105,7 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
         val dialog = Dialog(requireActivity(), R.style.full_screen_dialog)
         dialog.setContentView(R.layout.dialog_word_detail)
         dialog.setCanceledOnTouchOutside(true)
-        adapter = WordPagerAdapter(this, quizType, this)
+        adapter = WordPagerAdapter(this, lifecycleScope, quizType, this, wordPresenter)
         viewPager = dialog.findViewById(R.id.viewpager_words)
         arrowLeft = dialog.findViewById(R.id.arrow_left)
         arrowRight = dialog.findViewById(R.id.arrow_right)
@@ -138,7 +138,7 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
                 if (initialLoad && locked)
                     return@observe
                 lifecycleScope.launch {
-                    displayWords(wordPresenter.getWordKanjiSoloRadicalSentenceList(words))
+                    displayWords(words)
                 }
                 initialLoad = true
             }
@@ -146,13 +146,13 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
         if (wordPresenter.words == null) {
             lifecycleScope.launch {
                 val oneWordList = listOf(wordPresenter.getWordById(wordId))
-                displayWords(wordPresenter.getWordKanjiSoloRadicalSentenceList(oneWordList))
+                displayWords(oneWordList)
             }
         }
     }
 
     @Synchronized
-    override fun displayWords(words: List<Triple<Word, List<KanjiSoloRadical?>, Sentence>>) {
+    override fun displayWords(words: List<Word>) {
         adapter.replaceData(words)
         viewPager.currentItem = wordPosition
         setArrowDisplay(wordPosition)

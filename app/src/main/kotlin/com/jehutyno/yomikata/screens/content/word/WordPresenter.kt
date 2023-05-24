@@ -71,6 +71,19 @@ class WordPresenter(
         return wordsRad
     }
 
+    override suspend fun getKanjiSoloList(word: Word): List<KanjiSoloRadical> {
+        return word.japanese.fold(mutableListOf()) { acc, char ->
+            val kanjiSoloRadical = radicalSource.getSoloByKanjiRadical(char.toString())
+            if (kanjiSoloRadical != null)
+                acc.add(kanjiSoloRadical)
+            acc
+        }
+    }
+
+    override suspend fun getSentence(word: Word): Sentence {
+        return sentenceRepository.getSentenceById(word.sentenceId!!)
+    }
+
     override suspend fun levelUp(id: Long, points: Int) {
         val newPoints = com.jehutyno.yomikata.util.levelUp(points)
         wordRepository.updateWordPoints(id, newPoints)
