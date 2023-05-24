@@ -48,22 +48,27 @@ class WordPresenter(
     }
 
     override suspend fun getWordKanjiSoloRadicalSentenceList(words: List<Word>) : List<Triple<Word, List<KanjiSoloRadical?>, Sentence>> {
-        // TODO: maybe add dedicated Dao for this operation to increase performance?
+        val wordIdsMap = words.associateBy { it.id }
+        val wordIdsWithKanjiSoloRadicals = radicalSource.getSoloByKanjiRadical(wordIdsMap.keys.toLongArray())
+
+        val sentences = sentenceRepository.getSentencesByIds(words.mapNotNull{ it.sentenceId }.toLongArray()).toMutableList()
+
+        val mapWordIdKanjiSoloSentence = wordIdsWithKanjiSoloRadicals.mapValues { (wordId, value) ->
+            val sentence = sentences.find { sen -> sen.id == wordIdsMap[wordId]!!.sentenceId }
+            Pair(value, sentence)
+        }
+
         val wordsRad = mutableListOf<Triple<Word, List<KanjiSoloRadical?>, Sentence>>()
-        words.forEach {
-            val sentence = sentenceRepository.getSentenceById(it.sentenceId!!)
-            wordsRad.add(Triple(it, loadRadicals(it.japanese), sentence))
+        mapWordIdKanjiSoloSentence.forEach { (key, value) ->
+            wordsRad.add(
+                Triple(
+                    wordIdsMap[key]!!, value.first,
+                    value.second!!
+                )
+            )
         }
+
         return wordsRad
-    }
-
-    private suspend fun loadRadicals(kanjis: String): List<KanjiSoloRadical?> {
-        val radicals = mutableListOf<KanjiSoloRadical?>()
-        kanjis.forEach {
-            radicals.add(radicalSource.getSoloByKanjiRadical(it.toString()))
-        }
-
-        return radicals
     }
 
     override suspend fun levelUp(id: Long, points: Int) {
