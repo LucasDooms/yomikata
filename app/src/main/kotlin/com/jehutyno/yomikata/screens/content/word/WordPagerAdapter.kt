@@ -1,6 +1,5 @@
 package com.jehutyno.yomikata.screens.content.word
 
-import android.util.Log
 import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.MutableLiveData
@@ -26,14 +25,19 @@ class WordPagerAdapter(
 
     val count get() = words.count()
 
-    fun updateWord(position: Int, newWord: Word) {
-        words[position].first.value = newWord
-    }
-
-    fun replaceData(list: List<Word>) {
-        words.clear()
-        words.addAll(
-            list.map {
+    /**
+     * Replace data
+     *
+     * Replace the list of words used by the FragmentStateAdapter.
+     *
+     * KanjiSoloRadicals and Sentences will be loaded when needed.
+     *
+     * @param words List of words
+     */
+    fun replaceData(words: List<Word>) {
+        this.words.clear()
+        this.words.addAll(
+            words.map {
                 Triple(
                     MutableLiveData(it), MutableLiveData(null), MutableLiveData(null)
                 )
@@ -49,14 +53,14 @@ class WordPagerAdapter(
         fun onReportClick(wordKanjiSentence: Triple<Word, List<KanjiSoloRadical?>, Sentence>)
         fun onWordTTSClick(word: Word)
         fun onSentenceTTSClick(sentence: Sentence)
-        fun onLevelUp(word: Word, position: Int)
-        fun onLevelDown(word: Word, position: Int)
+        fun onLevelUp(word: MutableLiveData<Word>)
+        fun onLevelDown(word: MutableLiveData<Word>)
         fun onCloseClick()
     }
 
     interface InternalCallback: Callback {
-        fun onLevelUp(word: Word)
-        fun onLevelDown(word: Word)
+        fun onLevelUp()
+        fun onLevelDown()
     }
 
     override fun getItemCount(): Int {
@@ -64,22 +68,27 @@ class WordPagerAdapter(
     }
 
     override fun createFragment(position: Int): Fragment {
-        Log.e("FRAGMENT ADAPTER", "$position CREATED")
         class ExtendedCallback: InternalCallback, Callback by callback {
-            override fun onLevelUp(word: Word) {
-                callback.onLevelUp(word, position)
+            override fun onLevelUp() {
+                callback.onLevelUp(words[position].first)
             }
-            override fun onLevelDown(word: Word) {
-                callback.onLevelDown(word, position)
+            override fun onLevelDown() {
+                callback.onLevelDown(words[position].first)
             }
         }
+
         // load kanjisolo and sentence if not loaded yet
-        if (words[position].second.value == null || words[position].third.value == null) {
+        if (words[position].second.value == null) {
             coroutineScope.launch {
                 words[position].second.value = presenter.getKanjiSoloList(words[position].first.value!!)
+            }
+        }
+        if (words[position].third.value == null) {
+            coroutineScope.launch {
                 words[position].third.value = presenter.getSentence(words[position].first.value!!)
             }
         }
+
         return WordFragment(words[position], quizType, ExtendedCallback())
     }
 

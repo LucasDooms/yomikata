@@ -54,8 +54,7 @@ class WordFragment (
         binding.textTraduction.text = word.getTrad()
 
         binding.textTraduction.visibility =
-            if (quizType == QuizType.TYPE_JAP_EN || word.isKana == 2)
-                View.INVISIBLE else View.VISIBLE
+            if (quizType == QuizType.TYPE_JAP_EN || word.isKana == 2) View.INVISIBLE else View.VISIBLE
 
         binding.btnCopy.setOnClickListener(getCopyListener(word))
         binding.btnSelection.setOnClickListener { callback.onSelectionClick(binding.btnSelection, word) }
@@ -64,8 +63,8 @@ class WordFragment (
         ) }
         binding.btnTts.setOnClickListener { callback.onWordTTSClick(word) }
 
-        binding.levelDown.setOnClickListener { callback.onLevelDown(word) }
-        binding.levelUp.setOnClickListener { callback.onLevelUp(word) }
+        binding.levelDown.setOnClickListener { callback.onLevelDown() }
+        binding.levelUp.setOnClickListener { callback.onLevelUp() }
 
         val sentence = wordKanjiSentence.third.value
         if (sentence != null)

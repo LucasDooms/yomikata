@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.ImageView
 import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.jehutyno.yomikata.R
@@ -204,23 +205,22 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
         voicesManager.speakSentence(sentence, ttsSupported, tts)
     }
 
-    override fun onLevelUp(word: Word, position: Int) = runBlocking {
-        wordPresenter.levelUp(word.id, word.points)
-        updateAdapterPointsAndLevel(position, word, levelUp(word.points))
+    override fun onLevelUp(word: MutableLiveData<Word>) = runBlocking {
+        wordPresenter.levelUp(word.value!!.id, word.value!!.points)
+        updateAdapterPointsAndLevel(word, levelUp(word.value!!.points))
     }
 
-    override fun onLevelDown(word: Word, position: Int) = runBlocking {
-        wordPresenter.levelDown(word.id, word.points)
-        updateAdapterPointsAndLevel(position, word, levelDown(word.points))
+    override fun onLevelDown(word: MutableLiveData<Word>) = runBlocking {
+        wordPresenter.levelDown(word.value!!.id, word.value!!.points)
+        updateAdapterPointsAndLevel(word, levelDown(word.value!!.points))
     }
 
     override fun onCloseClick() {
         dialog?.dismiss()
     }
 
-    private fun updateAdapterPointsAndLevel(position: Int, word: Word, points: Int) {
-        val newWord = word.copy(points = points, level = getLevelFromPoints(points))
-        adapter.updateWord(position, newWord)
+    private fun updateAdapterPointsAndLevel(word: MutableLiveData<Word>, points: Int) {
+        word.value = word.value!!.copy(points = points, level = getLevelFromPoints(points))
     }
 
     override fun onDismiss(dialog: DialogInterface) {
