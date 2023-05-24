@@ -32,7 +32,8 @@ class WordFragment (
     private var _binding: VhWordDetailBinding? = null
     private val binding get() = _binding!!
 
-    private var displaySeparator = false
+
+    private val kanjiSoloRadicalViews = mutableListOf<View>()
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -72,11 +73,15 @@ class WordFragment (
     }
 
     private fun onKanjiSoloRadicalUpdate(kanjiSoloRadicals: List<KanjiSoloRadical>) {
-        // clear any views that are currently attached
-        binding.containerInfo.removeAllViews()
+        // completely reload by first removing current views
+        kanjiSoloRadicalViews.forEach {
+            binding.containerInfo.removeView(it)
+        }
+        kanjiSoloRadicalViews.clear()
+        // set up views, and add them to list
         kanjiSoloRadicals.forEach {
             val radicalLayoutBinding = VhKanjiSoloBinding.inflate(layoutInflater)
-            radicalLayoutBinding.separator.visibility = if (displaySeparator) View.VISIBLE else View.GONE
+            radicalLayoutBinding.separator.visibility = if (kanjiSoloRadicalViews.isNotEmpty()) View.VISIBLE else View.GONE
             radicalLayoutBinding.kanjiSolo.text = it.kanji
             radicalLayoutBinding.ksTrad.text = it.getTrad()
             radicalLayoutBinding.ksStrokes.text = it.strokes.toString()
@@ -89,12 +94,15 @@ class WordFragment (
             radicalLayoutBinding.radical.text = it.radical
             radicalLayoutBinding.radicalStroke.text = it.radStroke.toString()
             radicalLayoutBinding.radicalTrad.text = it.getRadTrad()
-            // assign _binding first!!
-            binding.containerInfo.addView(radicalLayoutBinding.root)
-            displaySeparator = true
+            kanjiSoloRadicalViews.add(radicalLayoutBinding.root)
         }
+        // add the views to the info container
+        kanjiSoloRadicalViews.forEach{
+            binding.containerInfo.addView(it)
+        }
+        // update visibility of info container
         binding.containerInfo.visibility =
-            if (kanjiSoloRadicals.isEmpty()) View.GONE else View.VISIBLE
+            if (kanjiSoloRadicalViews.isEmpty()) View.GONE else View.VISIBLE
     }
 
     private fun getCopyListener(word: Word): (View?) -> Unit {
