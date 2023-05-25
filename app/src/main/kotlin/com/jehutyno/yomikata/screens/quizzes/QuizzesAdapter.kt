@@ -2,6 +2,8 @@ package com.jehutyno.yomikata.screens.quizzes
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.jehutyno.yomikata.databinding.VhNewSelectionBinding
@@ -9,13 +11,21 @@ import com.jehutyno.yomikata.databinding.VhQuizBinding
 import com.jehutyno.yomikata.model.Quiz
 
 
+private val DIFF_CALLBACK = object: DiffUtil.ItemCallback<Quiz>() {
+    override fun areItemsTheSame(oldQuiz: Quiz, newQuiz: Quiz): Boolean {
+        return oldQuiz.id == newQuiz.id
+    }
+    override fun areContentsTheSame(oldQuiz: Quiz, newQuiz: Quiz): Boolean {
+        return oldQuiz == newQuiz
+    }
+}
 /**
  * Created by valentin on 04/10/2016.
  */
 class QuizzesAdapter(val category: Int, private val callback: Callback, private var isSelections: Boolean)
-    : RecyclerView.Adapter<QuizzesAdapter.ViewHolder>() {
+    : ListAdapter<Quiz, QuizzesAdapter.ViewHolder>(DIFF_CALLBACK) {
 
-    var items: MutableList<Quiz> = arrayListOf()
+    val items: MutableList<Quiz> get() = currentList
 
     companion object {
         const val TYPE_NEW_SELECTION = 0
@@ -90,17 +100,7 @@ class QuizzesAdapter(val category: Int, private val callback: Callback, private 
 
     fun replaceData(list: List<Quiz>, isSelections: Boolean) {
         this.isSelections = isSelections
-        items.clear()
-        items.addAll(list)
-        @Suppress("notifyDataSetChanged")
-        notifyDataSetChanged()
-    }
-
-    fun noData(isSelections: Boolean) {
-        this.isSelections = isSelections
-        val size = items.size
-        items.clear()
-        notifyItemRangeRemoved(0, size)
+        submitList(list)
     }
 
     sealed class ViewHolder(binding: ViewBinding) : RecyclerView.ViewHolder(binding.root) {

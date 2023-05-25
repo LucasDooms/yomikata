@@ -166,7 +166,7 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
             ) { }
             when (checkSpeechAvailability(requireActivity(), ttsSupported, getCategoryLevel(selectedCategory))) {
                 SpeechAvailability.NOT_AVAILABLE -> speechNotSupportedAlert(requireActivity(), getCategoryLevel(selectedCategory)) {
-                    (activity as QuizzesActivity).quizzesAdapter.notifyDataSetChanged()
+                    updateVoicesDownloadVisibility()
                 }
                 else -> mpresenter.quizTypeSwitch(QuizType.TYPE_AUDIO)
             }
@@ -332,7 +332,7 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
     }
 
     override fun displayNoData() {
-        adapter.noData(selectedCategory == Categories.CATEGORY_SELECTIONS)
+        adapter.replaceData(listOf(), selectedCategory == Categories.CATEGORY_SELECTIONS)
         animateSeekBar(binding.seekLow, 0, 0, 0)
         binding.textLow.text = 0.toString()
         animateSeekBar(binding.seekMedium, 0, 0, 0)
