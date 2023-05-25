@@ -1,4 +1,4 @@
-package com.jehutyno.yomikata.screens.content.word
+package com.jehutyno.yomikata.screens.word
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData

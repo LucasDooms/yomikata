@@ -1,4 +1,4 @@
-package com.jehutyno.yomikata.screens.content.word
+package com.jehutyno.yomikata.screens.word
 
 import android.app.Dialog
 import android.content.DialogInterface
@@ -28,7 +28,8 @@ import splitties.alertdialog.appcompat.*
 /**
  * Created by jehutyno on 08/10/2016.
  */
-class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContract.View, WordPagerAdapter.Callback, TextToSpeech.OnInitListener {
+class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContract.View,
+    WordPagerAdapter.Callback, TextToSpeech.OnInitListener {
 
     // kodein
     private val subDI = DI.lazy {

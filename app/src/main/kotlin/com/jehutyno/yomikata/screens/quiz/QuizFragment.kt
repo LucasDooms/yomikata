@@ -27,7 +27,7 @@ import com.jehutyno.yomikata.databinding.FragmentQuizBinding
 import com.jehutyno.yomikata.managers.VoicesManager
 import com.jehutyno.yomikata.model.*
 import com.jehutyno.yomikata.screens.answers.AnswersActivity
-import com.jehutyno.yomikata.screens.content.word.WordDetailDialogFragment
+import com.jehutyno.yomikata.screens.word.WordDetailDialogFragment
 import com.jehutyno.yomikata.util.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

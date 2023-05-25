@@ -1,4 +1,4 @@
-package com.jehutyno.yomikata.screens.content.word
+package com.jehutyno.yomikata.screens.word
 
 import android.content.Context
 import android.os.Bundle

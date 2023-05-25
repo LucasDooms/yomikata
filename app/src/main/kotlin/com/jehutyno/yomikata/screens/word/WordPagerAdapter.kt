@@ -1,4 +1,4 @@
-package com.jehutyno.yomikata.screens.content.word
+package com.jehutyno.yomikata.screens.word
 
 import android.view.View
 import androidx.fragment.app.Fragment
