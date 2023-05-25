@@ -4,9 +4,7 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.MutableLiveData
@@ -89,12 +87,10 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
         outState.putInt("position", binding.viewpagerWords.currentItem)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _binding = DialogWordDetailBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        // set binding here instead of in onCreateView, since onCreateDialog is called first
+        _binding = DialogWordDetailBinding.inflate(layoutInflater)
+
         tts = TextToSpeech(activity, this)
         if (arguments != null) {
             wordId = requireArguments().getLong(Extras.EXTRA_WORD_ID, -1L)
