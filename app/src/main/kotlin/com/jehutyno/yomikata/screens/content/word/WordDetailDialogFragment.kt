@@ -4,14 +4,16 @@ import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.ImageView
+import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.jehutyno.yomikata.R
+import com.jehutyno.yomikata.databinding.DialogWordDetailBinding
 import com.jehutyno.yomikata.managers.VoicesManager
 import com.jehutyno.yomikata.model.KanjiSoloRadical
 import com.jehutyno.yomikata.model.Sentence
@@ -56,12 +58,14 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
     private var searchString: String = ""
     private var quizTitle: String? = ""
     private var level: Level? = null
-    private lateinit var viewPager: ViewPager2
-    private lateinit var arrowLeft: ImageView
-    private lateinit var arrowRight: ImageView
 
     private var tts: TextToSpeech? = null
     private var ttsSupported: Int = TextToSpeech.LANG_NOT_SUPPORTED
+
+    // View Binding
+    private var _binding: DialogWordDetailBinding? = null
+    private val binding get () = _binding!!
+
 
     override fun onInit(status: Int) {
         if (activity != null)
@@ -81,7 +85,12 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putInt("position", viewPager.currentItem)
+        outState.putInt("position", binding.viewpagerWords.currentItem)
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = DialogWordDetailBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -102,16 +111,12 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
             wordPosition = savedInstanceState.getInt("position")
         }
 
-        // TODO: use view binding
         val dialog = Dialog(requireActivity(), R.style.full_screen_dialog)
-        dialog.setContentView(R.layout.dialog_word_detail)
+        dialog.setContentView(binding.root)
         dialog.setCanceledOnTouchOutside(true)
         adapter = WordPagerAdapter(this, lifecycleScope, quizType, this, wordPresenter)
-        viewPager = dialog.findViewById(R.id.viewpager_words)
-        arrowLeft = dialog.findViewById(R.id.arrow_left)
-        arrowRight = dialog.findViewById(R.id.arrow_right)
-        viewPager.adapter = adapter
-        viewPager.registerOnPageChangeCallback(
+        binding.viewpagerWords.adapter = adapter
+        binding.viewpagerWords.registerOnPageChangeCallback(
             object: ViewPager2.OnPageChangeCallback() {
                 override fun onPageSelected(position: Int) {
                     wordPosition = position
@@ -120,15 +125,15 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
             }
         )
 
-        arrowLeft.setOnClickListener { viewPager.setCurrentItem(viewPager.currentItem - 1, true) }
-        arrowRight.setOnClickListener { viewPager.setCurrentItem(viewPager.currentItem + 1, true) }
+        binding.arrowLeft.setOnClickListener { binding.viewpagerWords.setCurrentItem(binding.viewpagerWords.currentItem - 1, true) }
+        binding.arrowRight.setOnClickListener { binding.viewpagerWords.setCurrentItem(binding.viewpagerWords.currentItem + 1, true) }
 
         return dialog
     }
 
     fun setArrowDisplay(position: Int) {
-        arrowRight.visibility = if (position >= adapter.count - 1 || adapter.count <= 1) View.INVISIBLE else View.VISIBLE
-        arrowLeft.visibility = if (position == 0) View.INVISIBLE else View.VISIBLE
+        binding.arrowRight.visibility = if (position >= adapter.count - 1 || adapter.count <= 1) View.INVISIBLE else View.VISIBLE
+        binding.arrowLeft.visibility = if (position == 0) View.INVISIBLE else View.VISIBLE
     }
 
     override fun onResume() {
@@ -155,7 +160,7 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
     @Synchronized
     override fun displayWords(words: List<Word>) {
         adapter.replaceData(words)
-        viewPager.currentItem = wordPosition
+        binding.viewpagerWords.currentItem = wordPosition
         setArrowDisplay(wordPosition)
     }
 
@@ -229,6 +234,11 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
         if (parentFragment is DialogInterface.OnDismissListener) {
             parentFragment.onDismiss(dialog)
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onDestroy() {
