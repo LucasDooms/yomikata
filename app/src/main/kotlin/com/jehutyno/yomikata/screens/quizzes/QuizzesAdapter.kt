@@ -1,29 +1,28 @@
 package com.jehutyno.yomikata.screens.quizzes
 
-import android.content.Context
-import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.jehutyno.yomikata.databinding.VhNewSelectionBinding
 import com.jehutyno.yomikata.databinding.VhQuizBinding
 import com.jehutyno.yomikata.model.Quiz
-import com.jehutyno.yomikata.util.Categories
+
 
 /**
  * Created by valentin on 04/10/2016.
  */
-class QuizzesAdapter(val context: Context, val category: Int, private val callback: Callback, private var isSelections: Boolean) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class QuizzesAdapter(val category: Int, private val callback: Callback, private var isSelections: Boolean)
+    : RecyclerView.Adapter<QuizzesAdapter.ViewHolder>() {
 
-    var flag = false
     var items: MutableList<Quiz> = arrayListOf()
 
     companion object {
-        val TYPE_NEW_SELECTION = 0
-        val TYPE_QUIZ = 1
+        const val TYPE_NEW_SELECTION = 0
+        const val TYPE_QUIZ = 1
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
 
         return when (viewType) {
@@ -39,7 +38,7 @@ class QuizzesAdapter(val context: Context, val category: Int, private val callba
         }
     }
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         when (holder) {
             is ViewHolder.ViewHolderNewSelection -> {
                 holder.itemView.setOnClickListener {
@@ -55,9 +54,9 @@ class QuizzesAdapter(val context: Context, val category: Int, private val callba
                 else {
                     holder.quizSubtitle.text = ""
                 }
-                flag = true
+                // set to null before changing isChecked to prevent weird behaviour
+                holder.quizCheck.setOnCheckedChangeListener(null)
                 holder.quizCheck.isChecked = quiz.isSelected
-                flag = false
                 holder.itemView.setOnClickListener {
                     callback.onItemClick(position)
                 }
@@ -65,24 +64,9 @@ class QuizzesAdapter(val context: Context, val category: Int, private val callba
                     callback.onItemLongClick(position)
                     true
                 }
-                holder.quizCheck.setOnCheckedChangeListener {
-                    _, b ->
-                    if (category != Categories.CATEGORY_SELECTIONS) {
-                        if (!flag) {
-                            run {
-                                callback.onItemChecked(position, b)
-                                items[position].isSelected = b
-                                notifyItemChanged(position)
-                            }
-                        }
-                    } else {
-                        if (!flag) {
-                            run {
-                                items[position].isSelected = false
-                                notifyItemChanged(position)
-                            }
-                        }
-                    }
+                holder.quizCheck.setOnCheckedChangeListener { _, isSelected ->
+                    callback.onItemChecked(position, isSelected)
+                    items[position].isSelected = isSelected
                 }
 
             }

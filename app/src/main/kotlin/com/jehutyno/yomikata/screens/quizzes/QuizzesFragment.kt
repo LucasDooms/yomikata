@@ -90,7 +90,9 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
 
         // make sure selectedCategory is set before mpresenter is used to properly initialize with kodein
         selectedCategory = requireArguments().getInt(Extras.EXTRA_CATEGORY)
-        adapter = QuizzesAdapter(requireActivity(), selectedCategory, this, selectedCategory == Categories.CATEGORY_SELECTIONS)
+        adapter = QuizzesAdapter(selectedCategory, this,
+            selectedCategory == Categories.CATEGORY_SELECTIONS
+        )
     }
 
     override fun onStart() {
