@@ -6,12 +6,12 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.widget.PopupMenu
 import com.jehutyno.yomikata.R
-import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.presenters.SelectionsInterface
 import com.jehutyno.yomikata.presenters.WordInQuizInterface
 import com.jehutyno.yomikata.screens.word.WordsAdapter
 import com.jehutyno.yomikata.util.createNewSelectionDialog
+import com.jehutyno.yomikata.util.toBool
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -37,20 +37,21 @@ class WordSelectorActionModeCallback (
         adapter.notifyItemRangeChanged(0, adapter.items.size)
         return false
     }
-    enum class SelectAction(val value: Int) {
-        ADD_TO_SELECTIONS(1),
-        REMOVE_FROM_SELECTIONS(2),
-        SELECT_ALL(3),
-        UNSELECT_ALL(4)
+
+    companion object {
+        const val ADD_TO_SELECTIONS = 1
+        const val REMOVE_FROM_SELECTIONS = 2
+        const val SELECT_ALL = 3
+        const val UNSELECT_ALL = 4
     }
 
     override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
-        val selections: List<Quiz>
-        runBlocking {
-            selections = selectionsPresenter.getSelections()
-        }
+        val selections =
+            runBlocking {
+                selectionsPresenter.getSelections()
+            }
         when (item.itemId) {
-            SelectAction.ADD_TO_SELECTIONS.value -> {
+            ADD_TO_SELECTIONS -> {
                 val popup = PopupMenu(activity, activity.findViewById(item.itemId))
                 popup.menuInflater.inflate(R.menu.popup_selections, popup.menu)
                 for ((i, selection) in selections.withIndex()) {
@@ -58,7 +59,7 @@ class WordSelectorActionModeCallback (
                 }
                 popup.setOnMenuItemClickListener {it -> runBlocking {
                     val selectedWords: ArrayList<Word> = arrayListOf()
-                    adapter.items.forEach { item -> if (item.isSelected == 1) selectedWords.add(item) }
+                    adapter.items.forEach { item -> if (item.isSelected.toBool()) selectedWords.add(item) }
                     val selectionItemId = it.itemId
                     when (it.itemId) {
                         R.id.add_selection -> addSelection(selectedWords)
@@ -75,14 +76,14 @@ class WordSelectorActionModeCallback (
                 }
                 popup.show()
             }
-            SelectAction.REMOVE_FROM_SELECTIONS.value -> {
+            REMOVE_FROM_SELECTIONS -> {
                 val popup = PopupMenu(activity, activity.findViewById(item.itemId))
                 for ((i, selection) in selections.withIndex()) {
                     popup.menu.add(1, i, i, selection.getName()).isChecked = false
                 }
                 popup.setOnMenuItemClickListener {it -> runBlocking {
                     val selectedWords: ArrayList<Word> = arrayListOf()
-                    adapter.items.forEach { item -> if (item.isSelected == 1) selectedWords.add(item) }
+                    adapter.items.forEach { item -> if (item.isSelected.toBool()) selectedWords.add(item) }
                     val selectionItemId = it.itemId
                     when (it.itemId) {
                         else -> {
@@ -99,7 +100,7 @@ class WordSelectorActionModeCallback (
                 popup.show()
 
             }
-            SelectAction.SELECT_ALL.value -> {
+            SELECT_ALL -> {
                 runBlocking {
                     wordsPresenter.updateWordsCheck(adapter.items.map{it.id}.toLongArray(), true)
                 }
@@ -108,7 +109,7 @@ class WordSelectorActionModeCallback (
                 }
                 adapter.notifyItemRangeChanged(0, adapter.items.size)
             }
-            SelectAction.UNSELECT_ALL.value -> {
+            UNSELECT_ALL -> {
                 runBlocking {
                     wordsPresenter.updateWordsCheck(adapter.items.map{it.id}.toLongArray(), false)
                 }
@@ -139,16 +140,16 @@ class WordSelectorActionModeCallback (
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
         mode.title = null
-        menu.add(0, SelectAction.ADD_TO_SELECTIONS.value, 0,
+        menu.add(0, ADD_TO_SELECTIONS, 0,
             activity.getString(R.string.add_to_selections)).setIcon(R.drawable.ic_selections_selected)
             .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-        menu.add(0, SelectAction.REMOVE_FROM_SELECTIONS.value, 0,
+        menu.add(0, REMOVE_FROM_SELECTIONS, 0,
             activity.getString(R.string.remove_from_selection)).setIcon(R.drawable.ic_unselect)
             .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-        menu.add(0, SelectAction.SELECT_ALL.value, 0,
+        menu.add(0, SELECT_ALL, 0,
             activity.getString(R.string.select_all)).setIcon(R.drawable.ic_select_multiple)
             .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-        menu.add(0, SelectAction.UNSELECT_ALL.value, 0,
+        menu.add(0, UNSELECT_ALL, 0,
             activity.getString(R.string.unselect_all)).setIcon(R.drawable.ic_unselect_multiple)
             .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
         return true
