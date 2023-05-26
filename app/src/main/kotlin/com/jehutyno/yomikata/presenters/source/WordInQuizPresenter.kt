@@ -18,11 +18,11 @@ class WordInQuizPresenter(private val wordRepository: WordRepository): WordInQui
         return wordRepository.isWordInQuizzes(wordId, quizIds)
     }
 
-    override suspend fun updateWordCheck(id: Long, check: Boolean) {
-        wordRepository.updateWordSelected(id, check)
+    override suspend fun incrementWordFailCount(wordId: Long) {
+        wordRepository.incrementFail(wordId)
     }
 
-    override suspend fun updateWordsCheck(ids: LongArray, check: Boolean) {
-        wordRepository.updateWordsSelected(ids, check)
+    override suspend fun incrementWordSuccessCount(wordId: Long) {
+        wordRepository.incrementSuccess(wordId)
     }
 }

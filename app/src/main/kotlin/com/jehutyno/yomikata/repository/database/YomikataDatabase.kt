@@ -1,9 +1,12 @@
 package com.jehutyno.yomikata.repository.database
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
+import androidx.room.DeleteColumn
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.AutoMigrationSpec
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.jehutyno.yomikata.dao.KanjiSoloDao
@@ -20,12 +23,18 @@ import java.io.OutputStream
 import java.nio.channels.FileLock
 
 
-const val DATABASE_VERSION = 16
+const val DATABASE_VERSION = 17
 
 @Database(entities = [RoomKanjiSolo::class, RoomQuiz::class, RoomSentences::class,
                       RoomStatEntry::class, RoomWords::class, RoomQuizWord::class,
                       RoomRadicals::class],
-          version = DATABASE_VERSION, exportSchema = true)
+          version = DATABASE_VERSION, exportSchema = true,
+          autoMigrations = [
+              AutoMigration(16, 17,
+                YomikataDatabase.Companion.AutoMigrationSpec16To17::class
+              )
+          ]
+)
 abstract class YomikataDatabase : RoomDatabase() {
     abstract fun kanjiSoloDao(): KanjiSoloDao
     abstract fun quizDao(): QuizDao
@@ -208,6 +217,22 @@ abstract class YomikataDatabase : RoomDatabase() {
 
         ///////// DEFINE MIGRATIONS /////////
         // do not use values, constants, entities, daos, etc. that may be changed externally
+
+        @DeleteColumn.Entries(
+            DeleteColumn(
+                tableName = "words",
+                columnName = "count_try"
+            ),
+            DeleteColumn(
+                tableName = "words",
+                columnName = "isSelected"
+            )
+        )
+        class AutoMigrationSpec16To17 : AutoMigrationSpec {
+            override fun onPostMigrate(db: SupportSQLiteDatabase) {
+                // Invoked once auto migration is done
+            }
+        }
 
         // clean up english and french translations of words
         val MIGRATION_15_16 = object: Migration(15, 16) {

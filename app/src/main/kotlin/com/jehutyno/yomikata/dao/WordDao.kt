@@ -103,15 +103,15 @@ interface WordDao {
     @Query("UPDATE words SET repetition = :repetition WHERE _id = :wordId")
     suspend fun updateWordRepetition(wordId: Long, repetition: Int)
 
-    @Query("UPDATE words SET isSelected = :isSelected WHERE _id = :wordId")
-    suspend fun updateWordSelected(wordId: Long, isSelected: Boolean)
-
-    @Query("UPDATE words SET isSelected = :isSelected WHERE _id IN (:wordIds)")
-    suspend fun updateWordsSelected(wordIds: LongArray, isSelected: Boolean)
-
     @Insert
     suspend fun addQuizWord(quizWord: RoomQuizWord): Long
 
     @Insert
     suspend fun addWord(word: RoomWords): Long
+
+    @Query("UPDATE words SET count_fail = count_fail + 1 WHERE _id = :wordId")
+    suspend fun incrementFail(wordId: Long)
+
+    @Query("UPDATE words SET count_success = count_success + 1 WHERE _id = :wordId")
+    suspend fun incrementSuccess(wordId: Long)
 }

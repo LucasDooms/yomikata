@@ -21,7 +21,6 @@ import com.jehutyno.yomikata.screens.word.WordDetailDialogFragment
 import com.jehutyno.yomikata.screens.word.WordsAdapter
 import com.jehutyno.yomikata.util.Extras
 import com.jehutyno.yomikata.view.WordSelectorActionModeCallback
-import kotlinx.coroutines.runBlocking
 import org.kodein.di.DI
 import org.kodein.di.bind
 import org.kodein.di.instance
@@ -160,8 +159,8 @@ class SearchResultFragment(private val di: DI) : Fragment(), SearchResultContrac
         requireActivity().startActionMode(actionModeCallback)
     }
 
-    override fun onCheckChange(position: Int, check: Boolean) = runBlocking {
-        searchResultPresenter.updateWordCheck(adapter.items[position].id, check)
+    override fun onCheckChange(position: Int, check: Boolean) {
+        //
     }
 
     override fun onDestroyView() {

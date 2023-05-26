@@ -24,12 +24,12 @@ interface WordRepository {
     suspend fun getWordsByMinRepetition(quizIds: LongArray, minRepetition: Int, limit: Int): ArrayList<Word>
     suspend fun updateWordRepetition(wordId: Long, repetition: Int)
     suspend fun decreaseWordsRepetition(quizIds: LongArray)
-    suspend fun updateWordSelected(wordId: Long, check: Boolean)
-    suspend fun updateWordsSelected(wordIds: LongArray, check: Boolean)
     fun getWordsByLevel(quizIds: LongArray, level: Level?): Flow<List<Word>>
     suspend fun getAllWords() : List<Word>
     suspend fun getWordById(wordId: Long): Word
     suspend fun updateWord(updateWord: Word, word: Word?)
     suspend fun updateWordProgression(updateWord: Word, word: Word)
     suspend fun addQuizWord(quizId: Long, wordId: Long)
+    suspend fun incrementFail(wordId: Long)
+    suspend fun incrementSuccess(wordId: Long)
 }

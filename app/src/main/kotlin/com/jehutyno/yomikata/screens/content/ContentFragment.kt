@@ -27,7 +27,6 @@ import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.SeekBarsManager
 import com.jehutyno.yomikata.util.getSerializableHelper
 import com.jehutyno.yomikata.view.WordSelectorActionModeCallback
-import kotlinx.coroutines.runBlocking
 import org.kodein.di.DI
 import org.kodein.di.bind
 import org.kodein.di.instance
@@ -191,8 +190,8 @@ class ContentFragment(private val di: DI) : Fragment(), ContentContract.View, Wo
         requireActivity().startActionMode(actionModeCallback)
     }
 
-    override fun onCheckChange(position: Int, check: Boolean) = runBlocking {
-        mpresenter.updateWordCheck(adapter.items[position].id, check)
+    override fun onCheckChange(position: Int, check: Boolean) {
+        //
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

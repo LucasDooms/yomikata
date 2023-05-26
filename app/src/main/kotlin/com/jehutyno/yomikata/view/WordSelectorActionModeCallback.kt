@@ -101,18 +101,12 @@ class WordSelectorActionModeCallback (
 
             }
             SELECT_ALL -> {
-                runBlocking {
-                    wordsPresenter.updateWordsCheck(adapter.items.map{it.id}.toLongArray(), true)
-                }
                 adapter.items.forEach {
                     it.isSelected = 1
                 }
                 adapter.notifyItemRangeChanged(0, adapter.items.size)
             }
             UNSELECT_ALL -> {
-                runBlocking {
-                    wordsPresenter.updateWordsCheck(adapter.items.map{it.id}.toLongArray(), false)
-                }
                 adapter.items.forEach {
                     it.isSelected = 0
                 }

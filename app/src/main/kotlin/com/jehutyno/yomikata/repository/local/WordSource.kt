@@ -181,7 +181,6 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
                 updateWord.french,
                 updateWord.reading,
                 word.level,
-                word.countTry,
                 word.countSuccess,
                 word.countFail,
                 word.isKana,
@@ -195,7 +194,7 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         } else {
             val newWord = Word(
                 0, updateWord.japanese, updateWord.english, updateWord.french,
-                updateWord.reading, Level.LOW, 0, 0, 0,
+                updateWord.reading, Level.LOW, 0, 0,
                 0, 0, 0, 0, 0, 0
             )
             wordDao.updateWord(RoomWords.from(newWord))
@@ -210,7 +209,6 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
             word.french,
             word.reading,
             updateWord.level,
-            updateWord.countTry,
             updateWord.countSuccess,
             updateWord.countFail,
             word.isKana,
@@ -223,16 +221,16 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         wordDao.updateWord(RoomWords.from(newWord))
     }
 
-    override suspend fun updateWordSelected(wordId: Long, check: Boolean) {
-        wordDao.updateWordSelected(wordId, check)
-    }
-
-    override suspend fun updateWordsSelected(wordIds: LongArray, check: Boolean) {
-        wordDao.updateWordsSelected(wordIds, check)
-    }
-
     override suspend fun addQuizWord(quizId: Long, wordId: Long) {
         wordDao.addQuizWord(RoomQuizWord(quizId, wordId))
+    }
+
+    override suspend fun incrementFail(wordId: Long) {
+        wordDao.incrementFail(wordId)
+    }
+
+    override suspend fun incrementSuccess(wordId: Long) {
+        wordDao.incrementSuccess(wordId)
     }
 
 }

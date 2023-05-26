@@ -597,7 +597,9 @@ class QuizPresenter(
     /**
      * Update repetition and points
      *
-     * Updates the word's points, level, repetition in the database and in memory.
+     * Updates the word's points, level, repetition, count_fail, count_success
+     * in the database and in memory.
+     *
      * Also animates the color change caused by the change in points.
      *
      * Does nothing if previousAnswerWrong.
@@ -621,12 +623,20 @@ class QuizPresenter(
         updateWordPoints(word.id, newPoints)
         updateWordLevel(word.id, newLevel)
         updateRepetitions(word.id, newRepetition)
+        if (result)
+            wordRepository.incrementSuccess(word.id)
+        else
+            wordRepository.incrementFail(word.id)
 
         quizView.animateColor(wordHandler.getActiveIndex(), word, currentSentence, quizType, word.points, newPoints)
 
         // update in-memory word
         word.level = newLevel
         word.points = newPoints
+        if (result)
+            word.countSuccess++
+        else
+            word.countFail++
     }
 
     private fun addCurrentWordToAnswers(answer: String) {

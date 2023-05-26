@@ -19,13 +19,13 @@ import java.util.*
  * Created by valentin on 26/09/2016.
  */
 data class Word(var id: Long, var japanese: String, var english: String, var french: String,
-                var reading: String, var level: Level, var countTry: Int, var countSuccess: Int,
+                var reading: String, var level: Level, var countSuccess: Int,
                 var countFail: Int, var isKana: Int, var repetition: Int, var points: Int,
                 var baseCategory: Int, var isSelected: Int, var sentenceId: Long?) : Parcelable, Serializable {
 
     constructor(source: Parcel): this(source.readLong(), source.readString()!!,
         source.readString()!!, source.readString()!!, source.readString()!!, source.readInt().toLevel(),
-        source.readInt(), source.readInt(), source.readInt(), source.readInt(), source.readInt(),
+        source.readInt(), source.readInt(), source.readInt(), source.readInt(),
         source.readInt(), source.readInt(), source.readInt(), source.readLong().takeIf { it != -1L } )
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
@@ -35,7 +35,6 @@ data class Word(var id: Long, var japanese: String, var english: String, var fre
         dest.writeString(french)
         dest.writeString(reading)
         dest.writeInt(level.level)
-        dest.writeInt(countTry)
         dest.writeInt(countSuccess)
         dest.writeInt(countFail)
         dest.writeInt(isKana)
