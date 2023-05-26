@@ -131,17 +131,17 @@ class WordDaoTest {
     fun getWordsOfSizeRelatedTo() = runBlocking {
         val words = listOf (
             RoomWords(1, "月", "moon; Monday", "lune; lundi", "げつ",
-                0, 0, 0, 0, 0,
-                -1, 0, 2, 0, null),
+                0, 0,  0, 0,
+                -1, 0, 2,  null),
             RoomWords(2, "酒", "sake; alcohol", "saké; alcool", "さけ",
-                0, 0, 0, 0, 0,
-                -1, 0, 2, 0, null),
+                0, 0, 0, 0,
+                -1, 0, 2, null),
             RoomWords(3, "石炭", "(n) coal;(P)", "(n) charbon;houille",
-                "せきたん;いしずみ", 0, 0, 0, 0, 0,
-                -1, 0, 5, 0, null),
+                "せきたん;いしずみ", 0, 0, 0, 0,
+                -1, 0, 5, null),
             RoomWords(4, "式", "ceremony", "cérémonie", "しき",
-                0, 0, 0, 0, 0, -1, 0,
-                6, 0, null)
+                0, 0, 0, 0, -1, 0,
+                6, null)
         )
         words.forEach { wordDao.addWord(it) }
         quizDao.addQuiz(sampleRoomQuiz[0].copy(_id = 1))
@@ -166,8 +166,8 @@ class WordDaoTest {
     @Test
     fun searchWords() = runBlocking {
         val sample = RoomWords(1, "金", "metal; Friday", "métal; vendredi", "きん",
-            0, 0, 0, 0, 0, -1, 0,
-            2, 0, null)
+            0, 0, 0, 0, -1, 0,
+            2, null)
         val weird = "OZFEOZ3°OK?ZEVK°9K9jéPAODFAFPO?3O233"  // string that should not be found in db
         wordDao.addWord(sample)
         assert ( wordDao.searchWords("met", weird).first() == listOf(sample) )
@@ -239,19 +239,15 @@ class WordDaoTest {
     }
 
     @Test
-    fun updateWordSelected() = runBlocking {
-    }
-
-    @Test
     fun getQuizWordFromId() = runBlocking {
     }
 
     @Test
-    fun addQuizWord() = runBlocking {
+    fun incrementFail() = runBlocking {
     }
 
     @Test
-    fun addWord() = runBlocking {
+    fun incrementSuccess() = runBlocking {
     }
 
 }
