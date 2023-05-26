@@ -6,6 +6,7 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.widget.PopupMenu
 import com.jehutyno.yomikata.R
+import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.presenters.SelectionsInterface
 import com.jehutyno.yomikata.presenters.WordInQuizInterface
@@ -45,6 +46,15 @@ class WordSelectorActionModeCallback (
         const val UNSELECT_ALL = 4
     }
 
+    private fun setupPopupMenu(selections: List<Quiz>, item: MenuItem): PopupMenu {
+        val popup = PopupMenu(activity, activity.findViewById(item.itemId))
+        popup.menuInflater.inflate(R.menu.popup_selections, popup.menu)
+        for ((i, selection) in selections.withIndex()) {
+            popup.menu.add(1, i, i, selection.getName()).isChecked = false
+        }
+        return popup
+    }
+
     override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
         val selections =
             runBlocking {
@@ -52,53 +62,41 @@ class WordSelectorActionModeCallback (
             }
         when (item.itemId) {
             ADD_TO_SELECTIONS -> {
-                val popup = PopupMenu(activity, activity.findViewById(item.itemId))
-                popup.menuInflater.inflate(R.menu.popup_selections, popup.menu)
-                for ((i, selection) in selections.withIndex()) {
-                    popup.menu.add(1, i, i, selection.getName()).isChecked = false
-                }
-                popup.setOnMenuItemClickListener {it -> runBlocking {
-                    val selectedWords: ArrayList<Word> = arrayListOf()
-                    adapter.items.forEach { item -> if (item.isSelected.toBool()) selectedWords.add(item) }
-                    val selectionItemId = it.itemId
-                    when (it.itemId) {
+                val popup = setupPopupMenu(selections, item)
+                popup.setOnMenuItemClickListener { popItem ->
+                    val selectedWords = adapter.items.filter { item -> item.isSelected.toBool() }
+                    when (popItem.itemId) {
                         R.id.add_selection -> addSelection(selectedWords)
                         else -> {
-                            selectedWords.forEach {
-                                if (!wordsPresenter.isWordInQuiz(it.id, selections[selectionItemId].id))
-                                    selectionsPresenter.addWordToSelection(it.id, selections[selectionItemId].id)
+                            callWithTimeOut {
+                                val selectionId = selections[popItem.itemId].id
+                                selectedWords.forEach {
+                                    if (!wordsPresenter.isWordInQuiz(it.id, selectionId))
+                                        selectionsPresenter.addWordToSelection(it.id, selectionId)
+                                }
                             }
-                            it.isChecked = !it.isChecked
+                            popItem.isChecked = !popItem.isChecked
                         }
                     }
                     true
-                }
                 }
                 popup.show()
             }
             REMOVE_FROM_SELECTIONS -> {
-                val popup = PopupMenu(activity, activity.findViewById(item.itemId))
-                for ((i, selection) in selections.withIndex()) {
-                    popup.menu.add(1, i, i, selection.getName()).isChecked = false
-                }
-                popup.setOnMenuItemClickListener {it -> runBlocking {
-                    val selectedWords: ArrayList<Word> = arrayListOf()
-                    adapter.items.forEach { item -> if (item.isSelected.toBool()) selectedWords.add(item) }
-                    val selectionItemId = it.itemId
-                    when (it.itemId) {
-                        else -> {
-                            selectedWords.forEach {
-                                if (wordsPresenter.isWordInQuiz(it.id, selections[selectionItemId].id))
-                                    selectionsPresenter.deleteWordFromSelection(it.id, selections[selectionItemId].id)
-                            }
-                            it.isChecked = !it.isChecked
+                val popup = setupPopupMenu(selections, item)
+                popup.setOnMenuItemClickListener { popItem ->
+                    val selectedWords = adapter.items.filter { item -> item.isSelected.toBool() }
+                    callWithTimeOut {
+                        val selectionId = selections[popItem.itemId].id
+                        selectedWords.forEach { word ->
+                            if (wordsPresenter.isWordInQuiz(word.id, selectionId))
+                                selectionsPresenter.deleteWordFromSelection(word.id, selectionId)
                         }
                     }
+                    popItem.isChecked = !popItem.isChecked
                     true
                 }
-                }
                 popup.show()
-
             }
             SELECT_ALL -> {
                 adapter.items.forEach {
@@ -116,20 +114,26 @@ class WordSelectorActionModeCallback (
         return false
     }
 
-    private fun addSelection(selectedWords: ArrayList<Word>) {
+    private fun addSelection(selectedWords: List<Word>) {
         activity.createNewSelectionDialog("", { selectionName ->
-            // don't use lifecycle since creation might
-            // take a while, and we don't want the quiz selection to stop even if the activity stops
-            // use time out to prevent unexpected problems
-            MainScope().launch {
-                withTimeout(2000L) {
-                    val selectionId = selectionsPresenter.createSelection(selectionName)
-                    selectedWords.forEach {
-                        selectionsPresenter.addWordToSelection(it.id, selectionId)
-                    }
+            callWithTimeOut {
+                val selectionId = selectionsPresenter.createSelection(selectionName)
+                selectedWords.forEach {
+                    selectionsPresenter.addWordToSelection(it.id, selectionId)
                 }
             }
         }, null)
+    }
+
+    private fun callWithTimeOut(block: suspend () -> Unit) {
+        // don't use lifecycle since creation might
+        // take a while, and we don't want the quiz selection to stop even if the activity stops
+        // use time out to prevent unexpected problems
+        MainScope().launch {
+            withTimeout(750L) {
+                block()
+            }
+        }
     }
 
     override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
