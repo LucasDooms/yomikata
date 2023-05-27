@@ -54,7 +54,7 @@ class SearchResultFragment(private val di: DI) : Fragment(), SearchResultContrac
 
         adapter = WordsAdapter(requireActivity(), this)
         actionModeCallback = WordSelectorActionModeCallback (
-            ::requireActivity, adapter, searchResultPresenter
+            ::requireActivity, adapter, searchResultPresenter, null
         )
         layoutManager = GridLayoutManager(context, 2)
 

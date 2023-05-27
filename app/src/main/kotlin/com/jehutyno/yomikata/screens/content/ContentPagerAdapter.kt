@@ -13,10 +13,6 @@ import org.kodein.di.DI
  */
 class ContentPagerAdapter(activity: ContentActivity, var quizzes: List<Quiz>, private val di: DI) : FragmentStateAdapter(activity) {
 
-//    override fun getItemPosition(`object`: Any): Int {
-//        return PagerAdapter.POSITION_NONE
-//    }
-
     override fun getItemCount(): Int {
         return quizzes.size
     }
@@ -25,6 +21,7 @@ class ContentPagerAdapter(activity: ContentActivity, var quizzes: List<Quiz>, pr
         val bundle = Bundle()
         bundle.putLongArray(Extras.EXTRA_QUIZ_IDS, longArrayOf(quizzes[position].id))
         bundle.putString(Extras.EXTRA_QUIZ_TITLE, quizzes[position].getName())
+        bundle.putSerializable(Extras.EXTRA_SELECTION, quizzes[position])
         val contentFragment = ContentFragment(di)
         contentFragment.arguments = bundle
         return contentFragment

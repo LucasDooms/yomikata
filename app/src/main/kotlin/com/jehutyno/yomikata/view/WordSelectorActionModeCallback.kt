@@ -16,6 +16,10 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import splitties.alertdialog.appcompat.alertDialog
+import splitties.alertdialog.appcompat.cancelButton
+import splitties.alertdialog.appcompat.okButton
+import splitties.alertdialog.appcompat.title
 
 
 /**
@@ -25,11 +29,15 @@ import kotlinx.coroutines.withTimeout
  */
 class WordSelectorActionModeCallback (
     private val activityProvider: () -> Activity, private val adapter: WordsAdapter,
-    private val selectionsPresenter: SelectionsInterface
+    private val selectionsPresenter: SelectionsInterface, private val selection: Quiz?
     ) : ActionMode.Callback {
 
     private val activity: Activity
-        get() = activityProvider.invoke()
+        get() = activityProvider()
+
+    /** The currently selected words. If you want to use this multiple times, you may want
+     *  to assign it to a local variable for better performance and consistency */
+    private val selectedWords get() = adapter.items.filter { item -> item.isSelected.toBool() }
 
     override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
         adapter.checkMode = true
@@ -44,10 +52,19 @@ class WordSelectorActionModeCallback (
         const val UNSELECT_ALL = 4
     }
 
+    /**
+     * Setup popup menu
+     *
+     * @param selections List of all user selection quizzes
+     * @param item The MenuItem that was clicked (to which the popup will attach)
+     * @return The created PopupMenu, which is not shown yet
+     */
     private fun setupPopupMenu(selections: List<Quiz>, item: MenuItem): PopupMenu {
         val popup = PopupMenu(activity, activity.findViewById(item.itemId))
         popup.menuInflater.inflate(R.menu.popup_selections, popup.menu)
         for ((i, selection) in selections.withIndex()) {
+            if (selection == this.selection)
+                continue    // skip if it is the selection category in which we are selecting words
             popup.menu.add(1, i, i, selection.getName()).isChecked = false
         }
         return popup
@@ -62,9 +79,8 @@ class WordSelectorActionModeCallback (
             ADD_TO_SELECTIONS -> {
                 val popup = setupPopupMenu(selections, item)
                 popup.setOnMenuItemClickListener { popItem ->
-                    val selectedWords = adapter.items.filter { item -> item.isSelected.toBool() }
                     when (popItem.itemId) {
-                        R.id.add_selection -> addSelection(selectedWords)
+                        R.id.add_selection -> addSelection()
                         else -> {
                             callWithTimeOut {
                                 val selectionId = selections[popItem.itemId].id
@@ -80,19 +96,27 @@ class WordSelectorActionModeCallback (
                 popup.show()
             }
             REMOVE_FROM_SELECTIONS -> {
-                val popup = setupPopupMenu(selections, item)
-                popup.setOnMenuItemClickListener { popItem ->
-                    val selectedWords = adapter.items.filter { item -> item.isSelected.toBool() }
-                    callWithTimeOut {
-                        val selectionId = selections[popItem.itemId].id
-                        selectionsPresenter.deleteWordsFromSelection(
-                            selectedWords.map{ it.id }.toLongArray(), selectionId
-                        )
+                if (selection != null) {
+                    // since we are in a user selection:
+                    // don't show options, ask for confirmation and delete from the current category
+                    val currentlySelectedWords = selectedWords
+                    activity.alertDialog {
+                        title = activity.getString(R.string.remove_x_words, currentlySelectedWords.size)
+
+                        okButton {
+                            deleteWords(currentlySelectedWords, selection.id)
+                        }
+                        cancelButton()
+                    }.show()
+                } else {
+                    val popup = setupPopupMenu(selections, item)
+                    popup.setOnMenuItemClickListener { popItem ->
+                        deleteWords(selectedWords, selections[popItem.itemId].id)
+                        popItem.isChecked = !popItem.isChecked
+                        true
                     }
-                    popItem.isChecked = !popItem.isChecked
-                    true
+                    popup.show()
                 }
-                popup.show()
             }
             SELECT_ALL -> {
                 adapter.items.forEach {
@@ -112,23 +136,45 @@ class WordSelectorActionModeCallback (
         return false
     }
 
-    private fun addSelection(selectedWords: List<Word>) {
+    /**
+     * Add selection
+     *
+     * Open a dialog to allow the user to choose a name.
+     * If the selection is successfully created, [selectedWords] will be added to that selection.
+     */
+    private fun addSelection() {
+        // assign copy now (in case selections somehow changes later)
+        val currentlySelectedWords = selectedWords
         activity.createNewSelectionDialog("", { selectionName ->
             callWithTimeOut {
                 val selectionId = selectionsPresenter.createSelection(selectionName)
-                selectedWords.forEach {
+                currentlySelectedWords.forEach {
                     selectionsPresenter.addWordToSelection(it.id, selectionId)
                 }
             }
         }, null)
     }
 
+    /**
+     * Delete words
+     *
+     * @param words List of words to delete
+     * @param selectionId Id of the selection from which the words should be deleted
+     */
+    private fun deleteWords(words: List<Word>, selectionId: Long) {
+        callWithTimeOut {
+            selectionsPresenter.deleteWordsFromSelection(
+                words.map{ it.id }.toLongArray(), selectionId
+            )
+        }
+    }
+
     private fun callWithTimeOut(block: suspend () -> Unit) {
-        // don't use lifecycle since creation might
-        // take a while, and we don't want the quiz selection to stop even if the activity stops
-        // use time out to prevent unexpected problems
+        // don't use lifecycle since creation might take a while
+        // and we don't want the adding / deleting / creating to stop even if the activity stops
         MainScope().launch {
-            withTimeout(750L) {
+            // use time out to prevent unexpected problems
+            withTimeout(1000L) {
                 block()
             }
         }

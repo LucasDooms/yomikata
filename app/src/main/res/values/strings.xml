@@ -253,4 +253,5 @@
     <string name="give_word_or_kanji_hint">Give word or kanji</string>
     <string name="translate_to_japanese_hint">Translate to Japanese</string>
     <string name="translate_to_english_hint">Translate to English</string>
+    <string name="remove_x_words">Remove %d words?</string>
 </resources>

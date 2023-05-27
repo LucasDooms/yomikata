@@ -19,6 +19,7 @@ object Extras {
     @JvmStatic val EXTRA_WORD_POSITION = "extra_word_position"
     @JvmStatic val EXTRA_SEARCH_STRING = "extra_search_string"
     @JvmStatic val EXTRA_ERRORS = "extra_errors"
+    @JvmStatic val EXTRA_SELECTION = "extra_selection"
 
     @JvmStatic val REQUEST_PREFS = 33
     @JvmStatic val REQUEST_RESTORE = 55

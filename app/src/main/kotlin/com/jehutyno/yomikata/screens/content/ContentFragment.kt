@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.FragmentContentGraphBinding
+import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.screens.word.WordDetailDialogFragment
 import com.jehutyno.yomikata.screens.word.WordsAdapter
@@ -46,6 +47,7 @@ class ContentFragment(private val di: DI) : Fragment(), ContentContract.View, Wo
     private var level: Level? = null
     private var lastPosition = -1
     private var dialog: WordDetailDialogFragment? = null
+    private var selection: Quiz? = null // only set if this corresponds to a specific user selection
 
     // kodein
     private val subDI by DI.lazy {
@@ -78,6 +80,7 @@ class ContentFragment(private val di: DI) : Fragment(), ContentContract.View, Wo
         if (arguments != null) {
             quizIds = requireArguments().getLongArray(Extras.EXTRA_QUIZ_IDS)!!
             quizTitle = requireArguments().getString(Extras.EXTRA_QUIZ_TITLE)!!
+            selection = requireArguments().getSerializableHelper(Extras.EXTRA_SELECTION, Quiz::class.java)
             level = requireArguments().getSerializableHelper(Extras.EXTRA_LEVEL, Level::class.java)
         }
 
@@ -87,7 +90,7 @@ class ContentFragment(private val di: DI) : Fragment(), ContentContract.View, Wo
 
         adapter = WordsAdapter(requireActivity(), this)
         actionModeCallback = WordSelectorActionModeCallback (
-            ::requireActivity, adapter, mpresenter
+            ::requireActivity, adapter, mpresenter, selection
         )
         setHasOptionsMenu(true)
     }
