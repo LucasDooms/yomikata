@@ -39,6 +39,7 @@ import org.kodein.di.provider
 class ContentFragment(private val di: DI) : Fragment(), ContentContract.View, WordsAdapter.Callback {
 
     private lateinit var adapter: WordsAdapter
+    private var actionMode: ActionMode? = null
     private lateinit var actionModeCallback: ActionMode.Callback
     private lateinit var quizIds: LongArray
     private var quizTitle: String = ""
@@ -122,6 +123,8 @@ class ContentFragment(private val di: DI) : Fragment(), ContentContract.View, Wo
         // cancel animation in case it is currently running
         // set all to zero to prepare for the next animation when the page resumes again
         seekBars.resetAll()
+        // stop action mode
+        actionMode?.finish()
     }
 
     override fun displayStats() {
@@ -187,7 +190,7 @@ class ContentFragment(private val di: DI) : Fragment(), ContentContract.View, Wo
     }
 
     override fun onCategoryIconClick(position: Int) {
-        requireActivity().startActionMode(actionModeCallback)
+        actionMode = requireActivity().startActionMode(actionModeCallback)
     }
 
     override fun onCheckChange(position: Int, check: Boolean) {
@@ -204,7 +207,7 @@ class ContentFragment(private val di: DI) : Fragment(), ContentContract.View, Wo
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.select_mode ->
-                requireActivity().startActionMode(actionModeCallback)
+                actionMode = requireActivity().startActionMode(actionModeCallback)
         }
         return super.onOptionsItemSelected(item)
     }
