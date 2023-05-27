@@ -18,6 +18,8 @@ interface QuizRepository {
     suspend fun updateQuizSelected(quizId: Long, isSelected: Boolean)
     suspend fun addWordToQuiz(wordId: Long, quizId: Long)
     suspend fun deleteWordFromQuiz(wordId: Long, quizId: Long)
+    suspend fun addWordsToQuiz(wordIds: LongArray, quizId: Long)
+    suspend fun deleteWordsFromQuiz(wordIds: LongArray, quizId: Long)
     fun countWordsForLevel(quizIds: LongArray, level: Level): Flow<Int>
     fun countWordsForQuizzes(quizIds: LongArray): Flow<Int>
 }

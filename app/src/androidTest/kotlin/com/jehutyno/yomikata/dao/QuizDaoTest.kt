@@ -146,7 +146,7 @@ class QuizDaoTest {
         }
 
         val testRoomQuizWord = sampleRoomQuizWords[0]
-        quizDao.deleteWordFromQuiz(testRoomQuizWord.word_id, testRoomQuizWord.quiz_id)
+        quizDao.deleteWordFromQuiz(testRoomQuizWord)
         assert (
             !quizDao.getAllQuizWords().contains(testRoomQuizWord)
         )

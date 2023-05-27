@@ -34,6 +34,22 @@ class WordsAdapter(private val context: Context, private val callback: Callback)
         return ViewHolder(binding)
     }
 
+    class ChecksChanged(val selections: List<Boolean>)
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isEmpty()) {
+            super.onBindViewHolder(holder, position, payloads)
+        } else {
+            val checks = payloads.filterIsInstance<ChecksChanged>()
+            // if there are multiple ChecksChanged payloads, only the last one matters
+            if (checks.isNotEmpty()) {
+                checks.last().selections.getOrNull(position)?.also {
+                    holder.checkBox.isChecked = it
+                }
+            }
+        }
+    }
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val word = items[position]
         holder.wordName.text = word.japanese

@@ -194,7 +194,6 @@ class ContentActivity : AppCompatActivity(), DIAware {
                 quizIds = ids.toLongArray()
             }
             addOrReplaceFragment(R.id.fragment_container, contentLevelFragment!!)
-
         } else {
             contentPagerAdapter = ContentPagerAdapter(this@ContentActivity, quizzes, di)
             binding.pagerContent.adapter = contentPagerAdapter
@@ -203,13 +202,11 @@ class ContentActivity : AppCompatActivity(), DIAware {
             title = quizTitle
             binding.pagerContent.currentItem = quizPosition
             binding.pagerContent.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-
                 override fun onPageSelected(position: Int) {
                     val newQuizTitle = quizzes[position].getName().split("%")[0]
                     title = newQuizTitle
                     quizIds = longArrayOf(quizzes[position].id)
                 }
-
             })
         }
 

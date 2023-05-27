@@ -67,4 +67,12 @@ class SelectionsPresenter(private val quizRepository: QuizRepository,
         quizRepository.deleteWordFromQuiz(wordId, selectionId)
     }
 
+    override suspend fun addWordsToSelection(wordIds: LongArray, quizId: Long) {
+        quizRepository.addWordsToQuiz(wordIds, quizId)
+    }
+
+    override suspend fun deleteWordsFromSelection(wordIds: LongArray, quizId: Long) {
+        quizRepository.deleteWordsFromQuiz(wordIds, quizId)
+    }
+
 }

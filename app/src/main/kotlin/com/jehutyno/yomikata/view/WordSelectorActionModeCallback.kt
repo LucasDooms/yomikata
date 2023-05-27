@@ -9,7 +9,6 @@ import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.presenters.SelectionsInterface
-import com.jehutyno.yomikata.presenters.WordInQuizInterface
 import com.jehutyno.yomikata.screens.word.WordsAdapter
 import com.jehutyno.yomikata.util.createNewSelectionDialog
 import com.jehutyno.yomikata.util.toBool
@@ -26,8 +25,7 @@ import kotlinx.coroutines.withTimeout
  */
 class WordSelectorActionModeCallback (
     private val activityProvider: () -> Activity, private val adapter: WordsAdapter,
-    private val selectionsPresenter: SelectionsInterface,
-    private val wordsPresenter: WordInQuizInterface
+    private val selectionsPresenter: SelectionsInterface
     ) : ActionMode.Callback {
 
     private val activity: Activity
@@ -70,10 +68,9 @@ class WordSelectorActionModeCallback (
                         else -> {
                             callWithTimeOut {
                                 val selectionId = selections[popItem.itemId].id
-                                selectedWords.forEach {
-                                    if (!wordsPresenter.isWordInQuiz(it.id, selectionId))
-                                        selectionsPresenter.addWordToSelection(it.id, selectionId)
-                                }
+                                selectionsPresenter.addWordsToSelection(
+                                    selectedWords.map{ it.id }.toLongArray(), selectionId
+                                )
                             }
                             popItem.isChecked = !popItem.isChecked
                         }
@@ -88,10 +85,9 @@ class WordSelectorActionModeCallback (
                     val selectedWords = adapter.items.filter { item -> item.isSelected.toBool() }
                     callWithTimeOut {
                         val selectionId = selections[popItem.itemId].id
-                        selectedWords.forEach { word ->
-                            if (wordsPresenter.isWordInQuiz(word.id, selectionId))
-                                selectionsPresenter.deleteWordFromSelection(word.id, selectionId)
-                        }
+                        selectionsPresenter.deleteWordsFromSelection(
+                            selectedWords.map{ it.id }.toLongArray(), selectionId
+                        )
                     }
                     popItem.isChecked = !popItem.isChecked
                     true
@@ -102,13 +98,15 @@ class WordSelectorActionModeCallback (
                 adapter.items.forEach {
                     it.isSelected = 1
                 }
-                adapter.notifyItemRangeChanged(0, adapter.items.size)
+                adapter.notifyItemRangeChanged(0, adapter.items.size,
+                    WordsAdapter.ChecksChanged(adapter.items.map{ it.isSelected.toBool() }))
             }
             UNSELECT_ALL -> {
                 adapter.items.forEach {
                     it.isSelected = 0
                 }
-                adapter.notifyItemRangeChanged(0, adapter.items.size)
+                adapter.notifyItemRangeChanged(0, adapter.items.size,
+                    WordsAdapter.ChecksChanged(adapter.items.map{ it.isSelected.toBool() }))
             }
         }
         return false
