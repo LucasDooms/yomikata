@@ -3,6 +3,7 @@ package com.jehutyno.yomikata.dao
 import androidx.room.*
 import com.jehutyno.yomikata.repository.database.RoomQuiz
 import com.jehutyno.yomikata.repository.database.RoomQuizWord
+import com.jehutyno.yomikata.util.inBatches
 import kotlinx.coroutines.flow.Flow
 
 
@@ -59,7 +60,14 @@ interface QuizDao {
     }
 
     @Query("DELETE FROM quiz_word WHERE quiz_id = :quizId AND word_id IN (:wordIds)")
-    suspend fun deleteWordsFromQuiz(wordIds: LongArray, quizId: Long)
+    suspend fun deleteWordsFromQuizUnSafe(wordIds: LongArray, quizId: Long)
+
+    @Transaction
+    suspend fun deleteWordsFromQuiz(wordIds: LongArray, quizId: Long) {
+        wordIds.inBatches { smallerWordIds ->
+            deleteWordsFromQuizUnSafe(smallerWordIds, quizId)
+        }
+    }
 
     @Query("SELECT COUNT(*) FROM words JOIN quiz_word " +
            "ON quiz_word.word_id = words._id " +
