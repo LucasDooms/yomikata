@@ -98,16 +98,21 @@ class WordSelectorActionModeCallback (
             REMOVE_FROM_SELECTIONS -> {
                 if (selection != null) {
                     // since we are in a user selection:
-                    // don't show options, ask for confirmation and delete from the current category
+                    // don't show options, simply delete from the current selection quiz
                     val currentlySelectedWords = selectedWords
-                    activity.alertDialog {
-                        title = activity.getString(R.string.remove_x_words, currentlySelectedWords.size)
+                    if (currentlySelectedWords.size <= 1) {
+                        deleteWords(currentlySelectedWords, selection.id)
+                    } else {
+                        // if more than one word is deleted -> ask for confirmation
+                        activity.alertDialog {
+                            title = activity.getString(R.string.remove_x_words, currentlySelectedWords.size)
 
-                        okButton {
-                            deleteWords(currentlySelectedWords, selection.id)
-                        }
-                        cancelButton()
-                    }.show()
+                            okButton {
+                                deleteWords(currentlySelectedWords, selection.id)
+                            }
+                            cancelButton()
+                        }.show()
+                    }
                 } else {
                     val popup = setupPopupMenu(selections, item)
                     popup.setOnMenuItemClickListener { popItem ->
