@@ -1,7 +1,6 @@
 package com.jehutyno.yomikata.screens.content
 
 import android.content.Context
-import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Build
 import android.os.Bundle
@@ -14,21 +13,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
-import androidx.viewpager2.widget.ViewPager2
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.ActivityContentBinding
 import com.jehutyno.yomikata.model.Quiz
-import com.jehutyno.yomikata.model.StatAction
-import com.jehutyno.yomikata.model.StatResult
 import com.jehutyno.yomikata.repository.QuizRepository
 import com.jehutyno.yomikata.repository.local.StatsSource
-import com.jehutyno.yomikata.screens.quiz.QuizActivity
 import com.jehutyno.yomikata.util.Extras
 import com.jehutyno.yomikata.util.Extras.EXTRA_LEVEL
 import com.jehutyno.yomikata.util.Extras.EXTRA_QUIZ_IDS
 import com.jehutyno.yomikata.util.Extras.EXTRA_QUIZ_POSITION
-import com.jehutyno.yomikata.util.Extras.EXTRA_QUIZ_STRATEGY
-import com.jehutyno.yomikata.util.Extras.EXTRA_QUIZ_TITLE
 import com.jehutyno.yomikata.util.Extras.EXTRA_QUIZ_TYPES
 import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.Prefs
@@ -46,21 +39,19 @@ import org.kodein.di.android.di
 import org.kodein.di.direct
 import org.kodein.di.instance
 import org.kodein.di.newInstance
-import java.util.Calendar
 
 
 class ContentActivity : AppCompatActivity(), DIAware {
 
     companion object : KLogging()
 
-    private var quizIds = longArrayOf()
     private lateinit var selectedTypes: ArrayList<QuizType>
     private lateinit var quizzes: List<Quiz>
 
     private var category: Int = -1
     private var level: Level? = null
 
-    private var contentLevelFragment: ContentFragment? = null
+    private var contentLevelFragment: ContentLevelFragment? = null
 
     // kodein
     override val di by di()
@@ -172,75 +163,51 @@ class ContentActivity : AppCompatActivity(), DIAware {
      */
     private fun launchFragment(savedInstanceState: Bundle?, quizPosition: Int) {
         if (level != null) {
-            title = when (level) {
-                Level.LOW -> getString(R.string.red_review)
-                Level.MEDIUM -> getString(R.string.orange_review)
-                Level.HIGH -> getString(R.string.yellow_review)
-                else -> getString(R.string.green_review)
-            }
             binding.pagerContent.visibility = GONE
             if (savedInstanceState != null) {
-                //Restore the fragment's instance
-                contentLevelFragment = supportFragmentManager.getFragment(savedInstanceState, "contentLevelFragment") as ContentFragment
+                // Restore the fragment's instance
+                contentLevelFragment = supportFragmentManager.getFragment(
+                    savedInstanceState, "contentLevelFragment"
+                ) as ContentLevelFragment
             } else {
-                val ids = mutableListOf<Long>()
-                quizzes.forEach { ids.add(it.id) }
+                val quizIds = quizzes.map { it.id }.toLongArray()
                 val bundle = Bundle()
-                bundle.putLongArray(EXTRA_QUIZ_IDS, ids.toLongArray())
-                bundle.putString(EXTRA_QUIZ_TITLE, title as String)
+                // specific to ContentLevel
                 bundle.putSerializable(EXTRA_LEVEL, level)
-                contentLevelFragment = ContentFragment(di)
+                // general
+                bundle.putLongArray(EXTRA_QUIZ_IDS, quizIds)
+                bundle.putInt(Extras.EXTRA_CATEGORY, category)
+                bundle.putParcelableArrayList(EXTRA_QUIZ_TYPES, selectedTypes)
+
+                contentLevelFragment = ContentLevelFragment(di)
                 contentLevelFragment!!.arguments = bundle
-                quizIds = ids.toLongArray()
             }
             addOrReplaceFragment(R.id.fragment_container, contentLevelFragment!!)
         } else {
-            contentPagerAdapter = ContentPagerAdapter(this@ContentActivity, quizzes, di)
+            contentPagerAdapter = ContentPagerAdapter(
+                this@ContentActivity, quizzes, di, category, selectedTypes
+            )
             binding.pagerContent.adapter = contentPagerAdapter
-            val quizTitle = quizzes[quizPosition].getName().split("%")[0]
-            quizIds = longArrayOf(quizzes[quizPosition].id)
-            title = quizTitle
             binding.pagerContent.currentItem = quizPosition
-            binding.pagerContent.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
-                override fun onPageSelected(position: Int) {
-                    val newQuizTitle = quizzes[position].getName().split("%")[0]
-                    title = newQuizTitle
-                    quizIds = longArrayOf(quizzes[position].id)
-                }
-            })
         }
 
     }
 
     private fun launchQuiz(strategy: QuizStrategy) {
-        lifecycleScope.launch {
-            statsRepository.addStatEntry(
-                StatAction.LAUNCH_QUIZ_FROM_CATEGORY,
-                category.toLong(),
-                Calendar.getInstance().timeInMillis,
-                StatResult.OTHER)
-        }
-        val pref = PreferenceManager.getDefaultSharedPreferences(this)
-        val cat1 = pref.getInt(Prefs.LATEST_CATEGORY_1.pref, -1)
-
-        if (category != cat1) {
-            pref.edit().putInt(Prefs.LATEST_CATEGORY_2.pref, cat1).apply()
-            pref.edit().putInt(Prefs.LATEST_CATEGORY_1.pref, category).apply()
-        }
-
-        val intent = Intent(this, QuizActivity::class.java).apply {
-            putExtra(EXTRA_QUIZ_IDS, quizIds)
-            putExtra(EXTRA_QUIZ_TITLE, title)
-            putExtra(EXTRA_QUIZ_STRATEGY, strategy)
-            putExtra(EXTRA_LEVEL, level)
-            putExtra(EXTRA_QUIZ_TYPES, selectedTypes)
-        }
-        startActivity(intent)
+        val fragment =
+            if (level == null) {
+                supportFragmentManager.findFragmentByTag(
+                    "f${binding.pagerContent.currentItem}"
+                ) as ContentFragment?
+            } else {
+                contentLevelFragment
+            }
+        fragment!!.launchQuiz(strategy)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        //Save the fragment's instance
+        // Save the fragment's instance
         if (contentLevelFragment != null)
             supportFragmentManager.putFragment(outState, "contentLevelFragment", contentLevelFragment!!)
     }

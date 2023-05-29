@@ -8,6 +8,7 @@ import android.Manifest
 object Extras {
     @JvmStatic val EXTRA_CATEGORY = "extra_category"
     @JvmStatic val EXTRA_LEVEL = "extra_level"
+    @JvmStatic val EXTRA_QUIZ = "extra_quiz"
     @JvmStatic val EXTRA_QUIZ_ID = "extra_quiz_id"
     @JvmStatic val EXTRA_QUIZ_IDS = "extra_quiz_ids"
     @JvmStatic val EXTRA_QUIZ_POSITION = "extra_quiz_position"
