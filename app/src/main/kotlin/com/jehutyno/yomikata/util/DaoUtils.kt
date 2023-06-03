@@ -1,5 +1,9 @@
 package com.jehutyno.yomikata.util
 
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
+
 
 /** execute in batches of 500 to prevent issues with SQLite max of 999 '?' operators */
 suspend fun LongArray.inBatches(block: suspend (LongArray) -> Unit) {
@@ -29,6 +33,20 @@ suspend fun <T> LongArray.inBatchesWithReturn(block: suspend (LongArray) -> Iter
         result += block (
             this.sliceArray(index until (index + batchSize).coerceAtMost(size))
         )
+        index += batchSize
+    }
+    return result
+}
+
+fun <T> LongArray.inBatchesWithFlowReturn(block: (LongArray) -> Flow<Iterable<T>>): Flow<List<T>> {
+    val batchSize = 500
+    var index = 0
+    val size = this.size
+    var result = flowOf(listOf<T>())
+    while (index < size) {
+        result = result.combine(block (
+            this.sliceArray(index until (index + batchSize).coerceAtMost(size))
+        )) { one, two -> one + two }
         index += batchSize
     }
     return result

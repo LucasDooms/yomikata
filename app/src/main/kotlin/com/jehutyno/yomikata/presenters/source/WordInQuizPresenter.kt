@@ -3,11 +3,16 @@ package com.jehutyno.yomikata.presenters.source
 import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.presenters.WordInQuizInterface
 import com.jehutyno.yomikata.repository.WordRepository
+import kotlinx.coroutines.flow.Flow
 
 
 class WordInQuizPresenter(private val wordRepository: WordRepository): WordInQuizInterface {
     override suspend fun getWordById(id: Long): Word {
         return wordRepository.getWordById(id)
+    }
+
+    override fun getWordsByIds(wordIds: LongArray): Flow<List<Word>> {
+        return wordRepository.getWordsByIds(wordIds)
     }
 
     override suspend fun isWordInQuiz(wordId: Long, quizId: Long) : Boolean {

@@ -4,6 +4,7 @@ import androidx.room.*
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.jehutyno.yomikata.repository.database.RoomQuizWord
 import com.jehutyno.yomikata.repository.database.RoomWords
+import com.jehutyno.yomikata.util.inBatchesWithFlowReturn
 import kotlinx.coroutines.flow.Flow
 
 
@@ -28,26 +29,29 @@ interface WordDao {
            "AND words.level IN (:levels)")
     fun getWordsByLevels(quizIds: LongArray, levels: IntArray): Flow<List<RoomWords>>
 
-    @Query("SELECT words.* FROM words JOIN quiz_word " +
-           "ON quiz_word.word_id = words._id " +
-           "AND quiz_word.quiz_id IN (:quizIds) " +
-           "AND words.repetition = :repetition ORDER BY words._id LIMIT :limit")
-    suspend fun getWordsByRepetition(quizIds: LongArray, repetition: Int, limit: Int): List<RoomWords>
+    @Query("SELECT words.* FROM words " +
+            "WHERE _id IN (:wordIds) " +
+            "AND words.repetition = :repetition ORDER BY words._id LIMIT :limit")
+    suspend fun getWordsByRepetition(wordIds: LongArray, repetition: Int, limit: Int): List<RoomWords>
 
-    @Query("SELECT words.* FROM words JOIN quiz_word " +
-            "ON quiz_word.word_id = words._id " +
-            "AND quiz_word.quiz_id IN (:quizIds) " +
+    @Query("SELECT words.* FROM words " +
+            "WHERE _id IN (:wordIds) " +
             "AND words.repetition >= :minRepetition ORDER BY words.repetition, words._id LIMIT :limit")
-    suspend fun getWordsByMinRepetition(quizIds: LongArray, minRepetition: Int, limit: Int): List<RoomWords>
+    suspend fun getWordsByMinRepetition(wordIds: LongArray, minRepetition: Int, limit: Int): List<RoomWords>
 
-    @Query("SELECT words._id FROM words JOIN quiz_word " +
-           "ON quiz_word.word_id = words._id " +
-           "AND quiz_word.quiz_id IN (:quizIds) " +
-           "AND words.repetition > :repetition")
-    suspend fun getWordIdsWithRepetitionStrictlyGreaterThan(quizIds: LongArray, repetition: Int): LongArray
+    @Query("SELECT words._id FROM words " +
+            "WHERE _id IN (:wordIds) " +
+            "AND words.repetition > :repetition")
+    suspend fun getWordIdsWithRepetitionStrictlyGreaterThan(wordIds: LongArray, repetition: Int): LongArray
 
     @Query("UPDATE words SET repetition = repetition - 1 WHERE _id IN (:wordIds)")
     suspend fun decreaseWordRepetitionByOne(wordIds: LongArray)
+
+    @Transaction
+    suspend fun decreaseWordsRepetition(wordIds: LongArray) {
+        val idList = getWordIdsWithRepetitionStrictlyGreaterThan(wordIds, 0)
+        decreaseWordRepetitionByOne(idList)
+    }
 
     @Query("SELECT words._id FROM words JOIN quiz_word " +
             "ON quiz_word.word_id = words._id " +    // select all quiz_words of the correct word id
@@ -83,6 +87,15 @@ interface WordDao {
 
     @Query("SELECT * FROM words WHERE _id = :wordId LIMIT 1")
     suspend fun getWordById(wordId: Long): RoomWords?
+
+    @Query("SELECT * FROM words WHERE _id IN (:wordIds)")
+    fun getWordsByIdsUnSafe(wordIds: LongArray): Flow<List<RoomWords>>
+
+    fun getWordsByIds(wordIds: LongArray): Flow<List<RoomWords>> {
+        return wordIds.inBatchesWithFlowReturn { reducedWordIds ->
+            getWordsByIdsUnSafe(reducedWordIds)
+        }
+    }
 
     @Query("DELETE FROM words")
     suspend fun deleteAllWords()

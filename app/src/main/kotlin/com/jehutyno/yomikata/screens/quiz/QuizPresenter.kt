@@ -46,8 +46,8 @@ class QuizPresenter(
     val context: Context,
     private val wordRepository: WordRepository,
     private val sentenceRepository: SentenceRepository, private val statsRepository: StatsRepository,
-    private val quizView: QuizContract.View, private val quizIds: LongArray,
-    private val strategy: QuizStrategy, level: Level?,
+    private val quizView: QuizContract.View, private val wordIds: LongArray,
+    private val strategy: QuizStrategy,
     private val quizTypes: ArrayList<QuizType>,
     selectionsInterface: SelectionsInterface,
     wordInQuizInterface: WordInQuizInterface,
@@ -141,7 +141,7 @@ class QuizPresenter(
 
     init {
         wordsFlowJob = coroutineScope.launch {
-            words = wordRepository.getWordsByLevel(quizIds, level).stateIn(coroutineScope)
+            words = wordRepository.getWordsByIds(wordIds).stateIn(coroutineScope)
         }
         isFuriDisplayed = defaultSharedPreferences.getBoolean(Prefs.FURI_DISPLAYED.pref, true)
     }
@@ -774,14 +774,14 @@ class QuizPresenter(
      */
     override suspend fun getNextProgressiveWords(): List<Pair<Word, QuizType>> {
         // first get words that need to be reviewed (rep = 0)
-        val words = wordRepository.getWordsByRepetition(quizIds, 0, prefSessionLength)
+        val words = wordRepository.getWordsByRepetition(wordIds, 0, prefSessionLength)
         // if session length not reached yet, get completely new words (rep = -1)
         if (words.size < prefSessionLength || (words.size == 0 && prefSessionLength == -1)) {
-            words.addAll(wordRepository.getWordsByRepetition(quizIds, -1, prefSessionLength - words.size))
+            words.addAll(wordRepository.getWordsByRepetition(wordIds, -1, prefSessionLength - words.size))
         }
         // fill up to session length with other words (rep >= 1)
         if (words.size < prefSessionLength || (words.size == 0 && prefSessionLength == -1)) {
-            words.addAll(wordRepository.getWordsByMinRepetition(quizIds, 1, prefSessionLength - words.size))
+            words.addAll(wordRepository.getWordsByMinRepetition(wordIds, 1, prefSessionLength - words.size))
         }
         if (prefSessionLength == -1) {
             if (words.isNotEmpty()) {
@@ -820,7 +820,7 @@ class QuizPresenter(
     }
 
     override suspend fun decreaseAllRepetitions() {
-        wordRepository.decreaseWordsRepetition(quizIds)
+        wordRepository.decreaseWordsRepetition(wordIds)
     }
 
     override suspend fun saveAnswerResultStat(word: Word, result: Boolean) {

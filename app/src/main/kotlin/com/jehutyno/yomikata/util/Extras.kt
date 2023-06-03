@@ -17,6 +17,7 @@ object Extras {
     @JvmStatic val EXTRA_QUIZ_TITLE = "extra_quiz_title"
     @JvmStatic val EXTRA_QUIZ_STRATEGY = "extra_quiz_strategy"
     @JvmStatic val EXTRA_WORD_ID = "extra_word_id"
+    @JvmStatic val EXTRA_WORD_IDS = "extra_word_ids"
     @JvmStatic val EXTRA_WORD_POSITION = "extra_word_position"
     @JvmStatic val EXTRA_SEARCH_STRING = "extra_search_string"
     @JvmStatic val EXTRA_ERRORS = "extra_errors"

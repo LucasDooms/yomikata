@@ -32,6 +32,7 @@ import com.jehutyno.yomikata.util.QuizType
 import com.jehutyno.yomikata.util.SeekBarsManager
 import com.jehutyno.yomikata.util.getParcelableArrayListHelper
 import com.jehutyno.yomikata.util.getSerializableHelper
+import com.jehutyno.yomikata.util.toBool
 import com.jehutyno.yomikata.view.WordSelectorActionModeCallback
 import kotlinx.coroutines.launch
 import org.kodein.di.DI
@@ -218,7 +219,20 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
         }
 
         val intent = Intent(requireActivity(), QuizActivity::class.java).apply {
-            putExtra(Extras.EXTRA_QUIZ_IDS, quizIds)
+            val allWordIds = mpresenter.words.value!!.map{ it.id }.toLongArray()
+            putExtra(Extras.EXTRA_WORD_IDS,
+                if (actionMode == null)
+                    allWordIds
+                else {
+                    // if actionMode -> use currently selected words to start quiz
+                    val currentlySelectedIds = adapter.items
+                        .filter{ it.isSelected.toBool() }.map{ it.id }.toLongArray()
+                    if (currentlySelectedIds.isEmpty())
+                        allWordIds // but if no words are selected, use all words in quiz anyway
+                    else
+                        currentlySelectedIds
+                }
+            )
             putExtra(Extras.EXTRA_QUIZ_TITLE, getQuizTitle())
             putExtra(Extras.EXTRA_QUIZ_STRATEGY, strategy)
             putExtra(Extras.EXTRA_LEVEL, level)

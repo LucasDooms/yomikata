@@ -66,12 +66,12 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         }
     }
 
-    override suspend fun getWordsByRepetition(quizIds: LongArray, repetition: Int, limit: Int): ArrayList<Word> {
-        return wordDao.getWordsByRepetition(quizIds, repetition, limit).map { it.toWord() } as ArrayList<Word>
+    override suspend fun getWordsByRepetition(wordIds: LongArray, repetition: Int, limit: Int): ArrayList<Word> {
+        return wordDao.getWordsByRepetition(wordIds, repetition, limit).map { it.toWord() } as ArrayList<Word>
     }
 
-    override suspend fun getWordsByMinRepetition(quizIds: LongArray, minRepetition: Int, limit: Int): ArrayList<Word> {
-        return wordDao.getWordsByMinRepetition(quizIds, minRepetition, limit).map { it.toWord() } as ArrayList<Word>
+    override suspend fun getWordsByMinRepetition(wordIds: LongArray, minRepetition: Int, limit: Int): ArrayList<Word> {
+        return wordDao.getWordsByMinRepetition(wordIds, minRepetition, limit).map { it.toWord() } as ArrayList<Word>
     }
 
     override suspend fun getRandomWords(
@@ -145,6 +145,12 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         return wordDao.getWordById(wordId)!!.toWord()
     }
 
+    override fun getWordsByIds(wordIds: LongArray): Flow<List<Word>> {
+        return wordDao.getWordsByIds(wordIds).map { lst ->
+            lst.map { it.toWord() }
+        }
+    }
+
     override suspend fun deleteAllWords() {
         wordDao.deleteAllWords()
     }
@@ -167,9 +173,8 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         wordDao.updateWordRepetition(wordId, repetition)
     }
 
-    override suspend fun decreaseWordsRepetition(quizIds: LongArray) {
-        val idList = wordDao.getWordIdsWithRepetitionStrictlyGreaterThan(quizIds, 0)
-        wordDao.decreaseWordRepetitionByOne(idList)
+    override suspend fun decreaseWordsRepetition(wordIds: LongArray) {
+        wordDao.decreaseWordsRepetition(wordIds)
     }
 
     override suspend fun updateWord(updateWord: Word, word: Word?) {
