@@ -4,6 +4,7 @@ import androidx.room.*
 import com.jehutyno.yomikata.repository.database.RoomQuiz
 import com.jehutyno.yomikata.repository.database.RoomQuizWord
 import com.jehutyno.yomikata.util.inBatches
+import com.jehutyno.yomikata.util.inBatchesWithFlowReturn
 import kotlinx.coroutines.flow.Flow
 
 
@@ -73,10 +74,22 @@ interface QuizDao {
            "ON quiz_word.word_id = words._id " +
            "AND quiz_word.quiz_id IN (:quizIds) " +
            "AND words.level = :level")
-    fun countWordsForLevel(quizIds: LongArray, level: Int): Flow<Int>
+    fun countWordsForLevelUnsafe(quizIds: LongArray, level: Int): Flow<Int>
+
+    fun countWordsForLevel(quizIds: LongArray, level: Int): Flow<Int> {
+        return quizIds.inBatchesWithFlowReturn { smallerQuizIds ->
+            countWordsForLevelUnsafe(smallerQuizIds, level)
+        }
+    }
 
     @Query("SELECT COUNT(*) FROM words JOIN quiz_word " +
            "ON quiz_word.word_id = words._id " +
            "AND quiz_word.quiz_id IN (:quizIds)")
-    fun countWordsForQuizzes(quizIds: LongArray): Flow<Int>
+    fun countWordsForQuizzesUnsafe(quizIds: LongArray): Flow<Int>
+
+    fun countWordsForQuizzes(quizIds: LongArray): Flow<Int> {
+        return quizIds.inBatchesWithFlowReturn { smallerQuizIds ->
+            countWordsForQuizzesUnsafe(smallerQuizIds)
+        }
+    }
 }
