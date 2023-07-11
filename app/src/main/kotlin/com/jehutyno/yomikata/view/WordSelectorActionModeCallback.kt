@@ -29,7 +29,8 @@ import splitties.alertdialog.appcompat.title
  */
 class WordSelectorActionModeCallback (
     private val activityProvider: () -> Activity, private val adapter: WordsAdapter,
-    private val selectionsPresenter: SelectionsInterface, private val selection: Quiz?
+    private val selectionsPresenter: SelectionsInterface, private val selection: Quiz?,
+    private val onClose: (() -> Unit)? = null
     ) : ActionMode.Callback {
 
     private val activity: Activity
@@ -205,6 +206,7 @@ class WordSelectorActionModeCallback (
     override fun onDestroyActionMode(mode: ActionMode?) {
         adapter.checkMode = false
         adapter.notifyItemRangeChanged(0, adapter.items.size)
+        onClose?.invoke()
     }
 
 }
