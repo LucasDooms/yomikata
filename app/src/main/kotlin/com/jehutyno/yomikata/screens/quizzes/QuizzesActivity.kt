@@ -18,14 +18,11 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.TextView
 import android.window.OnBackInvokedDispatcher
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.widget.SwitchCompat
 import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
@@ -39,6 +36,8 @@ import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.navigation.NavigationView
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.ActivityQuizzesBinding
+import com.jehutyno.yomikata.databinding.MenuSwitchBinding
+import com.jehutyno.yomikata.databinding.NavHeaderBinding
 import com.jehutyno.yomikata.screens.PrefsActivity
 import com.jehutyno.yomikata.screens.content.QuizzesPagerAdapter
 import com.jehutyno.yomikata.screens.search.SearchResultActivity
@@ -64,14 +63,14 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
     private var menu: Menu? = null
 
     val handler = Handler(Looper.getMainLooper())
-    val runnable = object : Runnable {
+    private val runnable = object : Runnable {
         override fun run() {
             setImageRandom()
             handler.postDelayed(this, 7000)
         }
     }
 
-    val homeImages = intArrayOf(R.drawable.pic_04, R.drawable.pic_05, R.drawable.pic_06,
+    private val homeImages = intArrayOf(R.drawable.pic_04, R.drawable.pic_05, R.drawable.pic_06,
         R.drawable.pic_07, R.drawable.pic_08, R.drawable.pic_21, R.drawable.pic_22,
         R.drawable.pic_23, R.drawable.pic_24, R.drawable.pic_25)
 
@@ -106,7 +105,7 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
 
-        toolbar = findViewById(R.id.toolbar)
+        toolbar = binding.toolbar
         setSupportActionBar(toolbar)
         supportActionBar?.apply {
             setHomeAsUpIndicator(R.drawable.ic_menu)
@@ -252,11 +251,17 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
         } else {
             @Suppress("DEPRECATION") packageManager.getPackageInfo(packageName, 0)
         }
-        navigationView.getHeaderView(0).findViewById<TextView>(R.id.version).text = getString(R.string.yomiakataz_drawer, packageInfo.versionName)
-        navigationView.getHeaderView(0).findViewById<ImageView>(R.id.facebook).setOnClickListener { contactFacebook(this) }
-        navigationView.getHeaderView(0).findViewById<ImageView>(R.id.discord).setOnClickListener { contactDiscord(this) }
-        navigationView.getHeaderView(0).findViewById<ImageView>(R.id.play_store).setOnClickListener { contactPlayStore(this) }
-        navigationView.getHeaderView(0).findViewById<ImageView>(R.id.share).setOnClickListener { shareApp(this) }
+
+        val navHeaderBinding = NavHeaderBinding.bind(navigationView.getHeaderView(0))
+        val navMenuDayNightSwitchBinding = MenuSwitchBinding.bind(
+            navigationView.menu.findItem(R.id.day_night_item).actionView!!
+        )
+
+        navHeaderBinding.version.text = getString(R.string.yomiakataz_drawer, packageInfo.versionName)
+        navHeaderBinding.facebook.setOnClickListener { contactFacebook(this) }
+        navHeaderBinding.discord.setOnClickListener { contactDiscord(this) }
+        navHeaderBinding.playStore.setOnClickListener { contactPlayStore(this) }
+        navHeaderBinding.share.setOnClickListener { shareApp(this) }
 
         navigationView.setNavigationItemSelectedListener { menuItem ->
             binding.multipleActions.collapse()
@@ -308,7 +313,7 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
                 }
                 R.id.day_night_item -> {
                     menuItem.isChecked = !menuItem.isChecked
-                    menuItem.actionView?.findViewById<SwitchCompat>(R.id.my_switch)?.toggle()
+                    navMenuDayNightSwitchBinding.mySwitch.toggle()
                 }
                 R.id.settings -> {
                     menuItem.isChecked = false
@@ -322,9 +327,10 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
             true
         }
 
-        navigationView.menu.findItem(R.id.day_night_item).actionView?.findViewById<SwitchCompat>(R.id.my_switch)?.isChecked = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
-        navigationView.menu.findItem(R.id.day_night_item).isChecked = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
-        navigationView.menu.findItem(R.id.day_night_item).actionView?.findViewById<SwitchCompat>(R.id.my_switch)?.setOnCheckedChangeListener {
+        val isNightModeOn = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
+        navMenuDayNightSwitchBinding.mySwitch.isChecked = isNightModeOn
+        navigationView.menu.findItem(R.id.day_night_item).isChecked = isNightModeOn
+        navMenuDayNightSwitchBinding.mySwitch.setOnCheckedChangeListener {
             _, isChecked ->
             navigationView.menu.findItem(R.id.day_night_item).isChecked = isChecked
             val pref = PreferenceManager.getDefaultSharedPreferences(this)

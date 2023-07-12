@@ -59,11 +59,8 @@ class QuizzesAdapter(val category: Int, private val callback: Callback, private 
                 val quiz = items[position]
                 val quizNames = quiz.getName().split("%")
                 holder.quizName.text = quizNames[0]
-                if (quizNames.size > 1)
-                    holder.quizSubtitle.text = quiz.getName().split("%")[1]
-                else {
-                    holder.quizSubtitle.text = ""
-                }
+                holder.quizSubtitle.text = if (quizNames.size > 1) quizNames[1] else ""
+
                 // set to null before changing isChecked to prevent weird behaviour
                 holder.quizCheck.setOnCheckedChangeListener(null)
                 holder.quizCheck.isChecked = quiz.isSelected
