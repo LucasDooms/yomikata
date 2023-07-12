@@ -2,6 +2,8 @@ package com.jehutyno.yomikata.screens.quizzes
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
 import android.view.View
@@ -36,11 +38,9 @@ import com.jehutyno.yomikata.util.getLevelDownloadVersion
 import com.jehutyno.yomikata.util.onTTSinit
 import com.jehutyno.yomikata.util.speechNotSupportedAlert
 import com.jehutyno.yomikata.util.spotlightTuto
-import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.kodein.di.DI
 import org.kodein.di.instance
 import org.kodein.di.newInstance
@@ -49,7 +49,6 @@ import splitties.alertdialog.appcompat.cancelButton
 import splitties.alertdialog.appcompat.message
 import splitties.alertdialog.appcompat.okButton
 import splitties.alertdialog.appcompat.titleResource
-import java.lang.Thread.sleep
 
 
 /**
@@ -109,13 +108,18 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
         }
     }
 
+    private val handler = Handler(Looper.getMainLooper())
+    private val runnable = Runnable { tutos() }
+
     override fun onResume() {
         super.onResume()
         val position = (binding.recyclerview.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
         mpresenter.start()
         seekBars.animateAll()    // call this after loadQuizzes, since seekBars variables are set there
         binding.recyclerview.scrollToPosition(position)
-        tutos()
+        // add small delay to avoid problems when resetting tutorials, which can cause
+        // the QuizzesActivity tutorial to overlap with this tutorial
+        handler.postDelayed(runnable, 200)
 
         // check if voices downloads have changed (e.g. voices files have been deleted in preferences)
         updateVoicesDownloadVisibility()
@@ -123,6 +127,8 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
 
     override fun onPause() {
         super.onPause()
+
+        handler.removeCallbacks(runnable)
 
         // cancel animation in case it is currently running
         // set all to zero to prepare for the next animation when the page resumes again
@@ -401,30 +407,28 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
         _binding = null
     }
 
-    private fun tutos() = lifecycleScope.launch {
-        withContext(IO) {
-            sleep(500)
-        }
-        if (activity != null) {
-            spotlightTuto(requireActivity(), binding.btnPronunciationQcmSwitch, getString(R.string.tuto_quiz_type), getString(R.string.tuto_quiz_type_message)
+    private fun tutos() {
+        // add small delay,
+        spotlightTuto(
+            requireActivity(),
+            binding.btnPronunciationQcmSwitch,
+            getString(R.string.tuto_quiz_type),
+            getString(R.string.tuto_quiz_type_message)
+        ) {
+            spotlightTuto(
+                requireActivity(),
+                binding.textLow,
+                getString(R.string.tuto_progress),
+                getString(R.string.tuto_progress_message)
             ) {
-                if (activity != null) {
-                    spotlightTuto(requireActivity(),
-                        binding.textLow,
-                        getString(R.string.tuto_progress),
-                        getString(R.string.tuto_progress_message)
-                    ) {
-                        if (activity != null) {
-                            spotlightTuto(requireActivity(),
-                                binding.recyclerview.findViewHolderForAdapterPosition(0)?.itemView?.findViewById(
-                                    R.id.quiz_check
-                                ),
-                                getString(R.string.tuto_part_selection),
-                                getString(R.string.tuto_part_selection_message)
-                            ) { }
-                        }
-                    }
-                }
+                spotlightTuto(
+                    requireActivity(),
+                    binding.recyclerview.findViewHolderForAdapterPosition(0)?.itemView?.findViewById(
+                        R.id.quiz_check
+                    ),
+                    getString(R.string.tuto_part_selection),
+                    getString(R.string.tuto_part_selection_message)
+                ) { }
             }
         }
     }
