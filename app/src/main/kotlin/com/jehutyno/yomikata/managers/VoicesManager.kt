@@ -1,26 +1,45 @@
 package com.jehutyno.yomikata.managers
 
-import android.app.Activity
 import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.speech.tts.TextToSpeech
 import android.widget.Toast
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.model.Sentence
 import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.util.*
-import component.ExoPlayerAudio
 
 
 /**
  * Created by valentinlanfranchi on 01/09/2017.
  */
-class VoicesManager(val context: Activity) {
+/**
+ * Voices manager
+ *
+ * Used to play audio of sentences or words. Uses either google tts (text-to-speech),
+ * or downloaded voices, depending on which is available.
+ *
+ * This should always be called from the Main Thread.
+ *
+ * Remember to call releasePlayer() in the onDestroy method of an activity/fragment!
+ *
+ * @property context Context
+ * @constructor Create Voices manager
+ */
+class VoicesManager(private val context: Context) {
 
-    private val exoPlayerAudio: ExoPlayerAudio = ExoPlayerAudio(context)
-    private val exoPlayer = exoPlayerAudio.exoPlayer
+    private val exoPlayer = ExoPlayer.Builder(context).build()
+
+    private fun playUriWhenReady(uri: Uri) {
+        val mediaItem = MediaItem.fromUri(uri)
+        exoPlayer.setMediaItem(mediaItem)
+        exoPlayer.prepare()
+        exoPlayer.playWhenReady = true
+    }
 
     fun speakSentence(sentence: Sentence, ttsSupported: Int, tts: TextToSpeech?) {
         val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -31,8 +50,8 @@ class VoicesManager(val context: Activity) {
         when (checkSpeechAvailability(context, ttsSupported, sentence.level)) {
             SpeechAvailability.VOICES_AVAILABLE -> {
                 try {
-                    exoPlayer.prepare(exoPlayerAudio.extractorMediaSource(Uri.parse("${FileUtils.getDataDir(context, "Voices").absolutePath}/s_${sentence.id}.mp3")))
-                    exoPlayer.playWhenReady = true
+                    val uri = Uri.parse("${FileUtils.getDataDir(context, "Voices").absolutePath}/s_${sentence.id}.mp3")
+                    playUriWhenReady(uri)
                 } catch (e: Exception) {
                     speechNotSupportedAlert(context, sentence.level) {}
                 }
@@ -60,8 +79,8 @@ class VoicesManager(val context: Activity) {
         when (checkSpeechAvailability(context, ttsSupported, level)) {
             SpeechAvailability.VOICES_AVAILABLE -> {
                 try {
-                    exoPlayer.prepare(exoPlayerAudio.extractorMediaSource(Uri.parse("${FileUtils.getDataDir(context, "Voices").absolutePath}/w_${word.id}.mp3")))
-                    exoPlayer.playWhenReady = true
+                    val uri = Uri.parse("${FileUtils.getDataDir(context, "Voices").absolutePath}/w_${word.id}.mp3")
+                    playUriWhenReady(uri)
                 } catch (e: Exception) {
                     speechNotSupportedAlert(context, level) {}
                 }
@@ -86,6 +105,11 @@ class VoicesManager(val context: Activity) {
         }
     }
 
+    /**
+     * Release player
+     *
+     * Call this when you no longer need the ExoPlayer.
+     */
     fun releasePlayer() {
         exoPlayer.release()
     }
