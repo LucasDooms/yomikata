@@ -5,6 +5,7 @@ import androidx.multidex.MultiDexApplication
 import androidx.preference.PreferenceManager
 import com.facebook.stetho.Stetho
 import com.jehutyno.yomikata.dao.daoModule
+import com.jehutyno.yomikata.managers.voicesManagerModule
 import com.jehutyno.yomikata.presenters.source.presenterModule
 import com.jehutyno.yomikata.repository.database.databaseModule
 import com.jehutyno.yomikata.repository.local.repositoryModule
@@ -32,6 +33,7 @@ class YomikataZKApplication : MultiDexApplication(), DIAware {
         import(daoModule())
         import(repositoryModule())
         import(presenterModule())
+        import(voicesManagerModule())
     }
 
     override fun onCreate() {

@@ -16,11 +16,23 @@ import com.jehutyno.yomikata.managers.VoicesManager
 import com.jehutyno.yomikata.model.KanjiSoloRadical
 import com.jehutyno.yomikata.model.Sentence
 import com.jehutyno.yomikata.model.Word
-import com.jehutyno.yomikata.util.*
+import com.jehutyno.yomikata.util.DimensionHelper
+import com.jehutyno.yomikata.util.Extras
+import com.jehutyno.yomikata.util.Level
+import com.jehutyno.yomikata.util.QuizType
+import com.jehutyno.yomikata.util.createNewSelectionDialog
+import com.jehutyno.yomikata.util.getLevelFromPoints
+import com.jehutyno.yomikata.util.getSerializableHelper
+import com.jehutyno.yomikata.util.levelDown
+import com.jehutyno.yomikata.util.levelUp
+import com.jehutyno.yomikata.util.onTTSinit
+import com.jehutyno.yomikata.util.reportError
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.kodein.di.*
-import splitties.alertdialog.appcompat.*
+import org.kodein.di.DI
+import org.kodein.di.bind
+import org.kodein.di.instance
+import org.kodein.di.provider
 
 
 /**
@@ -32,7 +44,6 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
     // kodein
     private val subDI = DI.lazy {
         extend(di)
-//            import(voicesManagerModule(activity))
         bind<WordContract.Presenter>() with provider {
             WordPresenter (
                 instance(), instance(), instance(),
@@ -40,11 +51,8 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
                 quizIds, level, searchString
             )
         }
-        bind<VoicesManager>() with singleton { VoicesManager(requireActivity()) }
     }
-    @Suppress("unused")
     private val wordPresenter: WordContract.Presenter by subDI.instance()
-    @Suppress("unused")
     private val voicesManager: VoicesManager by subDI.instance()
 
     private lateinit var adapter: WordPagerAdapter
@@ -241,6 +249,7 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
     override fun onDestroy() {
         tts?.stop()
         tts?.shutdown()
+        voicesManager.releasePlayer()
         super.onDestroy()
     }
 }

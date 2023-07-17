@@ -11,12 +11,21 @@ import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.text.method.ScrollingMovementMethod
-import android.view.*
+import android.view.KeyEvent
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.*
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.PopupMenu
+import android.widget.SeekBar
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -25,14 +34,37 @@ import androidx.viewpager2.widget.ViewPager2
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.FragmentQuizBinding
 import com.jehutyno.yomikata.managers.VoicesManager
-import com.jehutyno.yomikata.model.*
+import com.jehutyno.yomikata.model.Answer
+import com.jehutyno.yomikata.model.Sentence
+import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.screens.answers.AnswersActivity
 import com.jehutyno.yomikata.screens.word.WordDetailDialogFragment
-import com.jehutyno.yomikata.util.*
+import com.jehutyno.yomikata.util.DimensionHelper
+import com.jehutyno.yomikata.util.Extras
+import com.jehutyno.yomikata.util.LocalPersistence
+import com.jehutyno.yomikata.util.Prefs
+import com.jehutyno.yomikata.util.QuizType
+import com.jehutyno.yomikata.util.SPEECH_NOT_INITALIZED
+import com.jehutyno.yomikata.util.SpeechAvailability
+import com.jehutyno.yomikata.util.checkSpeechAvailability
+import com.jehutyno.yomikata.util.cleanForQCM
+import com.jehutyno.yomikata.util.createNewSelectionDialog
+import com.jehutyno.yomikata.util.getCategoryLevel
+import com.jehutyno.yomikata.util.hideSoftKeyboard
+import com.jehutyno.yomikata.util.onTTSinit
+import com.jehutyno.yomikata.util.reportError
+import com.jehutyno.yomikata.util.speechNotSupportedAlert
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.kodein.di.*
-import splitties.alertdialog.appcompat.*
+import org.kodein.di.DI
+import org.kodein.di.instance
+import splitties.alertdialog.appcompat.alertDialog
+import splitties.alertdialog.appcompat.message
+import splitties.alertdialog.appcompat.messageResource
+import splitties.alertdialog.appcompat.negativeButton
+import splitties.alertdialog.appcompat.neutralButton
+import splitties.alertdialog.appcompat.okButton
+import splitties.alertdialog.appcompat.positiveButton
 
 
 /**
@@ -41,13 +73,8 @@ import splitties.alertdialog.appcompat.*
 class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItemPagerAdapter.Callback, TextToSpeech.OnInitListener {
 
     // kodein
-    private val subDI = DI.lazy {
-        extend(di)
-        bind<VoicesManager>() with singleton { VoicesManager(requireActivity()) }
-    }
-    @Suppress("unused")
-    private val voicesManager: VoicesManager by subDI.instance()
-    private val presenter: QuizContract.Presenter by subDI.instance(arg = this@QuizFragment)
+    private val voicesManager: VoicesManager by di.instance()
+    private val presenter: QuizContract.Presenter by di.instance(arg = this@QuizFragment)
 
     private var adapter: QuizItemPagerAdapter? = null
     private var tts: TextToSpeech? = null

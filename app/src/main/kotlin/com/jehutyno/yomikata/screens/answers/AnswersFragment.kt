@@ -14,11 +14,16 @@ import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.FragmentContentBinding
 import com.jehutyno.yomikata.managers.VoicesManager
 import com.jehutyno.yomikata.model.Answer
-import com.jehutyno.yomikata.util.*
+import com.jehutyno.yomikata.util.LocalPersistence
+import com.jehutyno.yomikata.util.createNewSelectionDialog
+import com.jehutyno.yomikata.util.onTTSinit
+import com.jehutyno.yomikata.util.reportError
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.kodein.di.*
-import java.util.*
+import org.kodein.di.DI
+import org.kodein.di.bind
+import org.kodein.di.instance
+import org.kodein.di.provider
 
 
 /**
@@ -32,9 +37,7 @@ class AnswersFragment(private val di: DI) : Fragment(), AnswersContract.View, An
         bind<AnswersContract.Presenter>() with provider {
             AnswersPresenter(instance(arg = lifecycleScope), instance(), instance())
         }
-        bind<VoicesManager>() with singleton { VoicesManager(requireActivity()) }
     }
-    @Suppress("unused")
     private val voicesManager: VoicesManager by subDI.instance()
     private val presenter: AnswersContract.Presenter by subDI.instance()
 
@@ -146,6 +149,7 @@ class AnswersFragment(private val di: DI) : Fragment(), AnswersContract.View, An
     override fun onDestroy() {
         tts?.stop()
         tts?.shutdown()
+        voicesManager.releasePlayer()
         super.onDestroy()
     }
 
