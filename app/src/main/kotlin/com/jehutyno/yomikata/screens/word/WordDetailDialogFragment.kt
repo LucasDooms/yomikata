@@ -208,11 +208,11 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
     }
 
     override fun onWordTTSClick(word: Word) {
-        voicesManager.speakWord(word, ttsSupported, tts)
+        voicesManager.speakWord(word, ttsSupported, tts, true)
     }
 
     override fun onSentenceTTSClick(sentence: Sentence) {
-        voicesManager.speakSentence(sentence, ttsSupported, tts)
+        voicesManager.speakSentence(sentence, ttsSupported, tts, true)
     }
 
     override fun onLevelUp(word: MutableLiveData<Word>) = runBlocking {

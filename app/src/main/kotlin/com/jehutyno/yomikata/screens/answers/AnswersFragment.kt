@@ -138,12 +138,12 @@ class AnswersFragment(private val di: DI) : Fragment(), AnswersContract.View, An
 
     override fun onTTSClick(position: Int) {
         val word = adapter.items[position].second
-        voicesManager.speakWord(word, ttsSupported, tts)
+        voicesManager.speakWord(word, ttsSupported, tts, true)
     }
 
     override fun onSentenceTTSClick(position: Int) {
         val sentence = adapter.items[position].third
-        voicesManager.speakSentence(sentence, ttsSupported, tts)
+        voicesManager.speakSentence(sentence, ttsSupported, tts, true)
     }
 
     override fun onDestroy() {

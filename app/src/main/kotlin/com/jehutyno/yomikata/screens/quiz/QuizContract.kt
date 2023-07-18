@@ -46,8 +46,8 @@ interface QuizContract {
         fun openAnswersScreen(answers: ArrayList<Answer>)
         fun setSentence(position: Int, sentence: Sentence)
         fun reportError(word: Word, sentence: Sentence)
-        fun speakWord(word: Word)
-        fun launchSpeakSentence(sentence: Sentence)
+        fun speakWord(word: Word, userAction: Boolean)
+        fun launchSpeakSentence(sentence: Sentence, userAction: Boolean)
         fun incrementInfiniteCount()
     }
 
@@ -81,8 +81,8 @@ interface QuizContract {
         suspend fun onOptionClick(choice: Int)
         fun onDisplayAnswersClick()
         suspend fun getRandomSentence(word: Word): Sentence
-        fun onSpeakSentence()
-        fun onSpeakWordTTS()
+        fun onSpeakSentence(userAction: Boolean)
+        fun onSpeakWordTTS(userAction: Boolean)
         fun onReportClick(position: Int)
         fun previousAnswerWrong(): Boolean
     }

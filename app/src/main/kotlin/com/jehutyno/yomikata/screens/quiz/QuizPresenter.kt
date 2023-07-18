@@ -287,7 +287,7 @@ class QuizPresenter(
                 quizView.displayEditMode()
                 // TTS at start
                 if (defaultSharedPreferences.getBoolean("play_start", false))
-                    quizView.speakWord(word)
+                    quizView.speakWord(word, false)
             }
             QuizType.TYPE_PRONUNCIATION_QCM -> {
                 // Keyboard
@@ -298,7 +298,7 @@ class QuizPresenter(
                                             context.getString(R.string.give_romaji_hint))
                 // TTS at start
                 if (defaultSharedPreferences.getBoolean("play_start", false))
-                    quizView.speakWord(word)
+                    quizView.speakWord(word, false)
                 // QCM options
                 randoms = generateQCMRandoms(word, quizType, word.reading)
                 setupQCMPronunciationQuiz()
@@ -308,7 +308,7 @@ class QuizPresenter(
                 quizView.hideKeyboard()
                 quizView.displayQCMMode(context.getString(R.string.give_word_or_kanji_hint))
                 // TTS at start
-                quizView.speakWord(word)
+                quizView.speakWord(word, false)
                 // QCM options
                 randoms = generateQCMRandoms(word, quizType, word.japanese)
                 setupQCMQAudioQuiz()
@@ -319,7 +319,7 @@ class QuizPresenter(
                 quizView.displayQCMMode(context.getString(R.string.translate_to_japanese_hint))
                 // TTS at stat
                 if (defaultSharedPreferences.getBoolean("play_start", false))
-                    quizView.speakWord(word)
+                    quizView.speakWord(word, false)
                 // QCM options
                 randoms = generateQCMRandoms(word, quizType, word.japanese)
                 setupQCMEnJapQuiz()
@@ -330,7 +330,7 @@ class QuizPresenter(
                 quizView.displayQCMMode(context.getString(R.string.translate_to_english_hint))
                 // TTS at start
                 if (defaultSharedPreferences.getBoolean("play_start", false))
-                    quizView.speakWord(word)
+                    quizView.speakWord(word, false)
                 // QCM Options
                 randoms = generateQCMRandoms(word, quizType, word.japanese)
                 setupQCMJapEnQuiz()
@@ -460,12 +460,12 @@ class QuizPresenter(
         quizView.openAnswersScreen(answers)
     }
 
-    override fun onSpeakWordTTS() {
-        quizView.speakWord(wordHandler.getCurrentWord())
+    override fun onSpeakWordTTS(userAction: Boolean) {
+        quizView.speakWord(wordHandler.getCurrentWord(), userAction)
     }
 
-    override fun onSpeakSentence() {
-        quizView.launchSpeakSentence(currentSentence)
+    override fun onSpeakSentence(userAction: Boolean) {
+        quizView.launchSpeakSentence(currentSentence, userAction)
     }
 
     private suspend fun onAnswerGiven(choice: Int) {
@@ -544,7 +544,7 @@ class QuizPresenter(
         }
 
         if (result && defaultSharedPreferences.getBoolean("play_end", true))
-            quizView.speakWord(wordHandler.getCurrentWord())
+            quizView.speakWord(wordHandler.getCurrentWord(), false)
 
         quizView.animateCheck(result)
 

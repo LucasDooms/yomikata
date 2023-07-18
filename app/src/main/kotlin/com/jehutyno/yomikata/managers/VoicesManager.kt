@@ -34,6 +34,7 @@ import com.jehutyno.yomikata.util.*
 class VoicesManager(private val context: Context) {
 
     private val exoPlayer = ExoPlayer.Builder(context).build()
+    private val volumeWarning: Toast = Toast.makeText(context, R.string.message_adjuste_volume, Toast.LENGTH_LONG)
 
     private fun playUriWhenReady(uri: Uri) {
         val mediaItem = MediaItem.fromUri(uri)
@@ -45,8 +46,8 @@ class VoicesManager(private val context: Context) {
     private fun warningLowVolume() {
         val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         if (audio.getStreamVolume(AudioManager.STREAM_MUSIC) == 0) {
-            val toast = Toast.makeText(context, R.string.message_adjuste_volume, Toast.LENGTH_LONG)
-            toast.show()
+            volumeWarning.cancel()
+            volumeWarning.show()
         }
     }
 
@@ -70,8 +71,19 @@ class VoicesManager(private val context: Context) {
         }
     }
 
-    fun speakSentence(sentence: Sentence, ttsSupported: Int, tts: TextToSpeech?) {
-        warningLowVolume()
+    /**
+     * Speak sentence
+     *
+     * Will stop any previous sound and play the sentence.
+     *
+     * @param sentence Sentence to play
+     * @param ttsSupported
+     * @param tts TextToSpeech instance to use
+     * @param userAction True if the user chose to play this, false otherwise
+     */
+    fun speakSentence(sentence: Sentence, ttsSupported: Int, tts: TextToSpeech?, userAction: Boolean) {
+        if (userAction) // don't display warning if the audio is automatic (in case user doesn't want volume)
+            warningLowVolume()
 
         when (checkSpeechAvailability(context, ttsSupported, sentence.level)) {
             SpeechAvailability.VOICES_AVAILABLE -> {
@@ -89,8 +101,19 @@ class VoicesManager(private val context: Context) {
         }
     }
 
-    fun speakWord(word: Word, ttsSupported: Int, tts: TextToSpeech?) {
-        warningLowVolume()
+    /**
+     * Speak word
+     *
+     * Will stop any previous sound and play the word.
+     *
+     * @param word Word to play
+     * @param ttsSupported
+     * @param tts TextToSpeech instance to use
+     * @param userAction True if the user chose to play this, false otherwise
+     */
+    fun speakWord(word: Word, ttsSupported: Int, tts: TextToSpeech?, userAction: Boolean) {
+        if (userAction) // don't display warning if the audio is automatic (in case user doesn't want volume)
+            warningLowVolume()
 
         val level = getCategoryLevel(word.baseCategory)
 

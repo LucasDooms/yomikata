@@ -108,18 +108,18 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
             val pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
             val noPlayStart = pref.getBoolean("play_start", false)
             if (adapter!!.words[binding.pager.currentItem].second == QuizType.TYPE_AUDIO || noPlayStart) {
-                voicesManager.speakWord(adapter!!.words[binding.pager.currentItem].first, ttsSupported, tts)
+                voicesManager.speakWord(adapter!!.words[binding.pager.currentItem].first, ttsSupported, tts, false)
             }
         }
     }
 
-    override fun speakWord(word: Word) {
+    override fun speakWord(word: Word, userAction: Boolean) {
         if (ttsSupported != SPEECH_NOT_INITALIZED)
-            voicesManager.speakWord(word, ttsSupported, tts)
+            voicesManager.speakWord(word, ttsSupported, tts, userAction)
     }
 
-    override fun launchSpeakSentence(sentence: Sentence) {
-        voicesManager.speakSentence(sentence, ttsSupported, tts)
+    override fun launchSpeakSentence(sentence: Sentence, userAction: Boolean) {
+        voicesManager.speakSentence(sentence, ttsSupported, tts, userAction)
     }
 
     /**
@@ -320,7 +320,7 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
         binding.seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                 audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, p1, 0)
-                presenter.onSpeakSentence()
+                presenter.onSpeakSentence(false)
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {
@@ -340,7 +340,7 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                 pref.edit().putInt(Prefs.TTS_RATE.pref, p1).apply()
                 tts?.setSpeechRate((p1 + 50).toFloat() / 100)
-                presenter.onSpeakSentence()
+                presenter.onSpeakSentence(false)
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {
@@ -780,7 +780,7 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
     }
 
     override fun onSoundClick(button: ImageButton, position: Int) {
-        presenter.onSpeakWordTTS()
+        presenter.onSpeakWordTTS(true)
     }
 
     override fun onSelectionClick(view: View, position: Int) = runBlocking {
@@ -822,7 +822,7 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
     }
 
     override fun onSentenceTTSClick(position: Int) {
-        presenter.onSpeakSentence()
+        presenter.onSpeakSentence(true)
     }
 
     override fun onTradClick(position: Int) {
