@@ -3,6 +3,7 @@ package com.jehutyno.yomikata.screens.quizzes
 import android.R.id.home
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -35,6 +36,7 @@ import com.getbase.floatingactionbutton.FloatingActionsMenu
 import com.google.android.material.appbar.AppBarLayout
 import com.google.android.material.navigation.NavigationView
 import com.jehutyno.yomikata.R
+import com.jehutyno.yomikata.YomikataZKApplication
 import com.jehutyno.yomikata.databinding.ActivityQuizzesBinding
 import com.jehutyno.yomikata.databinding.MenuSwitchBinding
 import com.jehutyno.yomikata.databinding.NavHeaderBinding
@@ -43,6 +45,7 @@ import com.jehutyno.yomikata.screens.content.QuizzesPagerAdapter
 import com.jehutyno.yomikata.screens.search.SearchResultActivity
 import com.jehutyno.yomikata.util.*
 import com.jehutyno.yomikata.view.AppBarStateChangeListener
+import io.github.inflationx.viewpump.ViewPumpContextWrapper
 import org.kodein.di.DI
 import org.kodein.di.DIAware
 import org.kodein.di.android.di
@@ -77,6 +80,10 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
     // View Binding
     private lateinit var binding: ActivityQuizzesBinding
 
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase, YomikataZKApplication.viewPump))
+    }
 
     fun voicesDownload(level: Int, onSuccess: () -> Unit) {
         launchVoicesDownload(this, level) {

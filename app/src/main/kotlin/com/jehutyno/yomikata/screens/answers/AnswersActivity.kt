@@ -1,5 +1,6 @@
 package com.jehutyno.yomikata.screens.answers
 
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.MenuItem
@@ -8,8 +9,10 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.Toolbar
 import androidx.preference.PreferenceManager
 import com.jehutyno.yomikata.R
+import com.jehutyno.yomikata.YomikataZKApplication
 import com.jehutyno.yomikata.util.Prefs
 import com.jehutyno.yomikata.util.addOrReplaceFragment
+import io.github.inflationx.viewpump.ViewPumpContextWrapper
 import mu.KLogging
 import org.kodein.di.DIAware
 import org.kodein.di.android.di
@@ -26,6 +29,11 @@ class AnswersActivity : AppCompatActivity(), DIAware {
     override val di by di()
 
     private lateinit var answersFragment: AnswersFragment
+
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase, YomikataZKApplication.viewPump))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
