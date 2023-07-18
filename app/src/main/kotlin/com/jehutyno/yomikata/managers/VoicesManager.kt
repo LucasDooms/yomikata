@@ -42,20 +42,40 @@ class VoicesManager(private val context: Context) {
         exoPlayer.playWhenReady = true
     }
 
-    fun speakSentence(sentence: Sentence, ttsSupported: Int, tts: TextToSpeech?) {
+    private fun warningLowVolume() {
         val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         if (audio.getStreamVolume(AudioManager.STREAM_MUSIC) == 0) {
             val toast = Toast.makeText(context, R.string.message_adjuste_volume, Toast.LENGTH_LONG)
             toast.show()
         }
+    }
+
+    /**
+     * Speak exo
+     *
+     * Speaks the voice file stored in the voices folder, e.g s_20.mp3 is sentence with id = 20.
+     *
+     * @param prefix "s" for sentence, "w" for word
+     * @param id Id of the word/sentence, should correspond to the voice file
+     * @param downloadLevel Used if voices not downloaded, to get the specific level to download
+     */
+    private fun speakExo(prefix: String, id: Long, downloadLevel: Int) {
+        try {
+            val uri = Uri.parse(
+                "${FileUtils.getDataDir(context, "Voices").absolutePath}/${prefix}_${id}.mp3"
+            )
+            playUriWhenReady(uri)
+        } catch (e: Exception) {
+            speechNotSupportedAlert(context, downloadLevel) {}
+        }
+    }
+
+    fun speakSentence(sentence: Sentence, ttsSupported: Int, tts: TextToSpeech?) {
+        warningLowVolume()
+
         when (checkSpeechAvailability(context, ttsSupported, sentence.level)) {
             SpeechAvailability.VOICES_AVAILABLE -> {
-                try {
-                    val uri = Uri.parse("${FileUtils.getDataDir(context, "Voices").absolutePath}/s_${sentence.id}.mp3")
-                    playUriWhenReady(uri)
-                } catch (e: Exception) {
-                    speechNotSupportedAlert(context, sentence.level) {}
-                }
+                speakExo("s", sentence.id, sentence.level)
             }
             SpeechAvailability.TTS_AVAILABLE -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -70,36 +90,26 @@ class VoicesManager(private val context: Context) {
     }
 
     fun speakWord(word: Word, ttsSupported: Int, tts: TextToSpeech?) {
-        val audio = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        if (audio.getStreamVolume(AudioManager.STREAM_MUSIC) == 0) {
-            val toast = Toast.makeText(context, R.string.message_adjuste_volume, Toast.LENGTH_SHORT)
-            toast.show()
-        }
+        warningLowVolume()
+
         val level = getCategoryLevel(word.baseCategory)
 
         when (checkSpeechAvailability(context, ttsSupported, level)) {
             SpeechAvailability.VOICES_AVAILABLE -> {
-                try {
-                    val uri = Uri.parse("${FileUtils.getDataDir(context, "Voices").absolutePath}/w_${word.id}.mp3")
-                    playUriWhenReady(uri)
-                } catch (e: Exception) {
-                    speechNotSupportedAlert(context, level) {}
-                }
+                speakExo("w", word.id, level)
             }
             SpeechAvailability.TTS_AVAILABLE -> {
+                val say = if (word.isKana >= 1)
+                        // if not kanji, take the japanese
+                    word.japanese.split("/")[0].split(";")[0]
+                else    // if kanji, use the reading
+                    word.reading.split("/")[0].split(";")[0]
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    tts?.speak(if (word.isKana >= 1)
-                        word.japanese.split("/")[0].split(";")[0]
-                    else
-                        word.reading.split("/")[0].split(";")[0],
-                            TextToSpeech.QUEUE_FLUSH, null,null)
+                    tts?.speak(say, TextToSpeech.QUEUE_FLUSH, null,null)
                 } else {    // remove this if minBuildVersion >= 21 (LOLLIPOP)
                     @Suppress("DEPRECATION")
-                    tts?.speak(if (word.isKana >= 1)
-                        word.japanese.split("/")[0].split(";")[0]
-                    else
-                        word.reading.split("/")[0].split(";")[0],
-                            TextToSpeech.QUEUE_FLUSH, null)
+                    tts?.speak(say, TextToSpeech.QUEUE_FLUSH, null)
                 }
             }
             else -> speechNotSupportedAlert(context, level) {}
