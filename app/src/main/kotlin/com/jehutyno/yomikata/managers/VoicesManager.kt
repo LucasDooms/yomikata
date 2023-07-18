@@ -7,6 +7,7 @@ import android.os.Build
 import android.speech.tts.TextToSpeech
 import android.widget.Toast
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player.COMMAND_RELEASE
 import androidx.media3.exoplayer.ExoPlayer
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.model.Sentence
@@ -109,9 +110,12 @@ class VoicesManager(private val context: Context) {
      * Release player
      *
      * Call this when you no longer need the ExoPlayer.
+     * Do not use the VoicesManager after calling this.
      */
     fun releasePlayer() {
-        exoPlayer.release()
+        if (exoPlayer.isCommandAvailable(COMMAND_RELEASE)) {
+            exoPlayer.release()
+        }
     }
 
 }
