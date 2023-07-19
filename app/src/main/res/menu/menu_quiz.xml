@@ -5,10 +5,10 @@
         android:id="@+id/tts_settings"
         android:icon="@drawable/ic_tts_settings"
         android:title="@string/action_errors"
-        app:showAsAction="always"/>
+        app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/errors"
         android:icon="@drawable/ic_tooltip_edit"
         android:title="@string/action_errors"
-        app:showAsAction="always"/>
+        app:showAsAction="ifRoom"/>
 </menu>

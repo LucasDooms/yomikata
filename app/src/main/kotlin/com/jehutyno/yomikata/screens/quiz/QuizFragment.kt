@@ -23,7 +23,6 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageButton
-import android.widget.ImageView
 import android.widget.PopupMenu
 import android.widget.SeekBar
 import androidx.core.content.ContextCompat
@@ -39,7 +38,6 @@ import com.jehutyno.yomikata.model.Sentence
 import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.screens.answers.AnswersActivity
 import com.jehutyno.yomikata.screens.word.WordDetailDialogFragment
-import com.jehutyno.yomikata.util.DimensionHelper
 import com.jehutyno.yomikata.util.Extras
 import com.jehutyno.yomikata.util.LocalPersistence
 import com.jehutyno.yomikata.util.Prefs
@@ -83,8 +81,6 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
 
     private var adapter: QuizItemPagerAdapter? = null
     private var currentEditColor: Int = R.color.lighter_gray
-    private lateinit var errorsMenu: MenuItem
-    private lateinit var ttsSettingsMenu: MenuItem
     private var holdOn = false
     private var isSettingsOpen = false
 
@@ -194,52 +190,6 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_quiz, menu)
         super.onCreateOptionsMenu(menu, inflater)
-        this.errorsMenu = menu.findItem(R.id.errors)
-        if (context != null) {
-            val errorsImage = ImageView(context)
-            errorsImage.setImageResource(R.drawable.ic_tooltip_edit)
-            val pad = DimensionHelper.getPixelFromDip(activity, 12)
-            errorsImage.setPadding(pad, pad, pad, pad)
-            errorsImage.setOnClickListener {
-                presenter.onDisplayAnswersClick()
-            }
-            this.errorsMenu.actionView = errorsImage
-        }
-        this.ttsSettingsMenu = menu.findItem(R.id.tts_settings)
-
-        if (context == null) {
-            return
-        }
-        val ttsErrorsImage = ImageView(context)
-        ttsErrorsImage.setImageResource(R.drawable.ic_tts_settings)
-        val pad = DimensionHelper.getPixelFromDip(activity, 12)
-        ttsErrorsImage.setPadding(pad, pad, pad, pad)
-        ttsErrorsImage.setOnClickListener {
-            val category = adapter!!.words[binding.pager.currentItem].first.baseCategory
-            when (val speechAvailability = voicesManager.getSpeechAvailability(getCategoryLevel(category))) {
-                SpeechAvailability.NOT_AVAILABLE -> {
-                    speechNotSupportedAlert(requireActivity(), getCategoryLevel(category)) {}
-                }
-                else -> {
-                    if (isSettingsOpen) {
-                        closeTTSSettings()
-                    } else {
-                        if (speechAvailability == SpeechAvailability.VOICES_AVAILABLE) {
-                            binding.settingsSpeed.visibility = GONE
-                            binding.seekSpeed.visibility = GONE
-                        } else {
-                            binding.settingsSpeed.visibility = VISIBLE
-                            binding.seekSpeed.visibility = VISIBLE
-                        }
-                        binding.settingsContainer.animate().setDuration(300).translationY(0f).withStartAction {
-                            binding.settingsContainer.visibility = VISIBLE
-                            isSettingsOpen = true
-                        }.start()
-                    }
-                }
-            }
-        }
-        this.ttsSettingsMenu.actionView = ttsErrorsImage
     }
 
     /**
@@ -743,7 +693,7 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
             }
             R.id.tts_settings -> {
                 val category = adapter!!.words[binding.pager.currentItem].first.baseCategory
-                when (val speechAvailability = voicesManager.getSpeechAvailability(getCategoryLevel(category))) {
+                when (voicesManager.getSpeechAvailability(getCategoryLevel(category))) {
                     SpeechAvailability.NOT_AVAILABLE -> {
                         speechNotSupportedAlert(requireActivity(), getCategoryLevel(category)) {}
                     }
@@ -751,13 +701,6 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
                         if (isSettingsOpen) {
                             closeTTSSettings()
                         } else {
-                            if (speechAvailability == SpeechAvailability.VOICES_AVAILABLE) {
-                                binding.settingsSpeed.visibility = GONE
-                                binding.seekSpeed.visibility = GONE
-                            } else {
-                                binding.settingsSpeed.visibility = VISIBLE
-                                binding.seekSpeed.visibility = VISIBLE
-                            }
                             binding.settingsContainer.animate().setDuration(300).translationY(0f).withStartAction {
                                 binding.settingsContainer.visibility = VISIBLE
                                 isSettingsOpen = true
