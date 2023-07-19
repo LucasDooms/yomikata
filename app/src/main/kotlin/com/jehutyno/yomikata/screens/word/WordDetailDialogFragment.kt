@@ -235,6 +235,11 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
         word.value = word.value!!.copy(points = points, level = getLevelFromPoints(points))
     }
 
+    override fun onPause() {
+        voicesManager.stop()
+        super.onPause()
+    }
+
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         val parentFragment = parentFragment

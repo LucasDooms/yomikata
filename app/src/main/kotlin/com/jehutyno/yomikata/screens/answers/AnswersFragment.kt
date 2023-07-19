@@ -149,6 +149,11 @@ class AnswersFragment(private val di: DI) : Fragment(), AnswersContract.View, An
         voicesManager.speakSentence(sentence, true)
     }
 
+    override fun onPause() {
+        voicesManager.stop()
+        super.onPause()
+    }
+
     override fun onDestroy() {
         voicesManager.destroy()
         super.onDestroy()

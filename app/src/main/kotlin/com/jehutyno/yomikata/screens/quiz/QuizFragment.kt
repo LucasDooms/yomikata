@@ -3,7 +3,6 @@ package com.jehutyno.yomikata.screens.quiz
 import android.animation.Animator
 import android.content.Context
 import android.content.Intent
-import android.media.AudioManager
 import android.os.Bundle
 import android.os.Parcelable
 import android.speech.tts.TextToSpeech
@@ -184,6 +183,7 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
 
     override fun onPause() {
         super.onPause()
+        voicesManager.stop()
         requireActivity().hideSoftKeyboard()
     }
 
@@ -268,25 +268,30 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
     }
 
     private fun setUpAudioManager() {
-        val audioManager = requireActivity().getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        binding.seekVolume.max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        binding.seekVolume.progress = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        val pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
+
+        // VOLUME
+        binding.seekVolume.max = 100
+        val volume = pref.getInt(Prefs.SPEECH_VOLUME.pref, 100)
+        binding.seekVolume.progress = volume
+        voicesManager.setVolume(volume.toFloat() / 100)
         binding.seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, p1, 0)
-                presenter.onSpeakSentence(false)
+                pref.edit().putInt(Prefs.SPEECH_VOLUME.pref, p1).apply()
+                voicesManager.setVolume(p1.toFloat() / 100)
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {
             }
 
             override fun onStopTrackingTouch(p0: SeekBar?) {
+                presenter.onSpeakSentence(true)
             }
 
         })
 
-        binding.seekSpeed.max = 250
-        val pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        // SPEECH RATE
+        binding.seekSpeed.max = 150
         val rate = pref.getInt(Prefs.TTS_RATE.pref, 50)
         binding.seekSpeed.progress = rate
         voicesManager.setSpeechRate((rate + 50).toFloat() / 100)
@@ -294,13 +299,13 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                 pref.edit().putInt(Prefs.TTS_RATE.pref, p1).apply()
                 voicesManager.setSpeechRate((p1 + 50).toFloat() / 100)
-                presenter.onSpeakSentence(false)
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {
             }
 
             override fun onStopTrackingTouch(p0: SeekBar?) {
+                presenter.onSpeakSentence(true)
             }
 
         })
