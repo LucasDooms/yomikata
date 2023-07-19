@@ -1,4 +1,4 @@
-package com.jehutyno.yomikata.util
+package com.jehutyno.yomikata.managers
 
 import android.animation.ObjectAnimator
 import android.view.View
@@ -6,6 +6,7 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
+import com.jehutyno.yomikata.util.animateSeekBar
 
 
 /**

@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.FragmentContentGraphBinding
+import com.jehutyno.yomikata.managers.SeekBarsManager
 import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.screens.quiz.QuizActivity
@@ -29,7 +30,6 @@ import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.Prefs
 import com.jehutyno.yomikata.util.QuizStrategy
 import com.jehutyno.yomikata.util.QuizType
-import com.jehutyno.yomikata.util.SeekBarsManager
 import com.jehutyno.yomikata.util.getParcelableArrayListHelper
 import com.jehutyno.yomikata.util.getSerializableHelper
 import com.jehutyno.yomikata.util.toBool

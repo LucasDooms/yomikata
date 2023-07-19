@@ -17,6 +17,7 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.FragmentQuizzesBinding
+import com.jehutyno.yomikata.managers.SeekBarsManager
 import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.repository.QuizRepository
 import com.jehutyno.yomikata.screens.content.ContentActivity
@@ -27,7 +28,6 @@ import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.Prefs
 import com.jehutyno.yomikata.util.QuizStrategy
 import com.jehutyno.yomikata.util.QuizType
-import com.jehutyno.yomikata.util.SeekBarsManager
 import com.jehutyno.yomikata.util.SpeechAvailability
 import com.jehutyno.yomikata.util.animateSeekBar
 import com.jehutyno.yomikata.util.checkSpeechAvailability
