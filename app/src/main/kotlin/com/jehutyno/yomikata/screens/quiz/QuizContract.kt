@@ -63,7 +63,6 @@ interface QuizContract {
         suspend fun decreaseAllRepetitions()
         suspend fun saveAnswerResultStat(word: Word, result: Boolean)
         suspend fun saveWordSeenStat(word: Word)
-        fun setTTSSupported(ttsSupported: Int)
         fun getTTSForCurrentItem(): String
         suspend fun setIsFuriDisplayed(isFuriDisplayed: Boolean)
         suspend fun onNextWord()

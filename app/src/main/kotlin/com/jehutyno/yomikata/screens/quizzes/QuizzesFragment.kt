@@ -35,7 +35,6 @@ import com.jehutyno.yomikata.util.createNewSelectionDialog
 import com.jehutyno.yomikata.util.getCategoryLevel
 import com.jehutyno.yomikata.util.getLevelDownloadSize
 import com.jehutyno.yomikata.util.getLevelDownloadVersion
-import com.jehutyno.yomikata.util.onTTSinit
 import com.jehutyno.yomikata.util.speechNotSupportedAlert
 import com.jehutyno.yomikata.util.spotlightTuto
 import kotlinx.coroutines.flow.map
@@ -80,9 +79,7 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
     private val binding get() = _binding!!
 
 
-    override fun onInit(status: Int) {
-        ttsSupported = onTTSinit(context, status, tts)
-    }
+    override fun onInit(status: Int) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

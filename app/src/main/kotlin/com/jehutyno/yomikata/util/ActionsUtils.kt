@@ -1,5 +1,3 @@
-@file:Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
-
 package com.jehutyno.yomikata.util
 
 import android.app.Activity
@@ -81,7 +79,7 @@ fun shareApp(context: Context) {
 fun contactEmail(context: Context) {
     val i = Intent(Intent.ACTION_SEND)
     i.type = "message/rfc822"
-    i.putExtra(Intent.EXTRA_EMAIL, arrayOf<String>(context.getString(R.string.email_contact)))
+    i.putExtra(Intent.EXTRA_EMAIL, arrayOf(context.getString(R.string.email_contact)))
     i.putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.email_subject))
     try {
         context.startActivity(Intent.createChooser(i, context.getString(R.string.mail_chooser)))
@@ -112,25 +110,22 @@ fun contactDiscord(context: Context) {
     context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.discord_link))).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
 }
 
-fun onTTSinit(context: Context?, status: Int, tts: TextToSpeech?): Int {
-    var supported: Int = TextToSpeech.LANG_NOT_SUPPORTED
-    try {
-        // Initialize the TTS in Japanese if available
-        if (status == TextToSpeech.SUCCESS) {
-            supported = tts!!.isLanguageAvailable(Locale.JAPANESE)
-            if (supported == TextToSpeech.LANG_MISSING_DATA || supported == TextToSpeech.LANG_NOT_SUPPORTED) {
-            } else {
-                tts.language = Locale.JAPANESE
-            }
-        } else {
-            Toast.makeText(context, context?.getString(R.string.tts_init_failed), Toast.LENGTH_LONG).show()
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        supported = TextToSpeech.LANG_NOT_SUPPORTED
+/**
+ * On TTS init
+ *
+ * @param status Status code given in onInit
+ * @param tts TextToSpeech instance
+ * @return The value of tts.isLanguageAvailable for Japanese
+ */
+fun Context.onTTSinit(status: Int, tts: TextToSpeech): Int {
+    // show toast on error and exit
+    if (status == TextToSpeech.ERROR) {
+        Toast.makeText(this, getString(R.string.tts_init_failed), Toast.LENGTH_LONG).show()
+        return TextToSpeech.LANG_NOT_SUPPORTED
     }
-
-    return supported
+    // Initialize the TTS in Japanese if available
+    tts.language = Locale.JAPANESE
+    return tts.isLanguageAvailable(Locale.JAPANESE)
 }
 
 fun checkSpeechAvailability(context: Context, ttsSupported: Int, level: Int): SpeechAvailability {
@@ -185,15 +180,15 @@ fun sentenceFuri(sentence: Sentence): String {
 
 fun getWordPositionInFuriSentence(sentenceJap: String, word: Word): Int {
     val wordWgrongPosition = sentenceJap.indexOf("{${word.japanese};${word.reading}}")
-    if (wordWgrongPosition > 0 && wordWgrongPosition < sentenceJap.length) {
+    return if (wordWgrongPosition > 0 && wordWgrongPosition < sentenceJap.length) {
         val subSentence = sentenceJap.subSequence(0, wordWgrongPosition)
         var overdub = 0
-        """\{""".toRegex().findAll(subSentence).forEach { overdub++ }
+        """\{""".toRegex().findAll(subSentence).forEach { _ -> overdub++ }
         """;.+?\}""".toRegex().findAll(subSentence).forEach { overdub += it.value.length }
 
-        return wordWgrongPosition - overdub
+        wordWgrongPosition - overdub
     } else
-        return 0
+        0
 }
 
 /**
@@ -360,7 +355,7 @@ fun launchVoicesDownload(context: Context, level: Int, finishedListener: () -> U
 
     }.addOnProgressListener {
         val progress: Double = 100.0 * it.bytesTransferred / it.totalByteCount
-        progressBar!!.progress = progress.toInt()
+        progressBar.progress = progress.toInt()
     }
 
 }

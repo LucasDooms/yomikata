@@ -3,7 +3,6 @@ package com.jehutyno.yomikata.screens.quiz
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.preference.PreferenceManager
 import com.jehutyno.yomikata.R
@@ -130,7 +129,6 @@ class QuizPresenter(
     /** Session length of choice in user preferences */
     private val prefSessionLength = defaultSharedPreferences.getString("length", "10")!!.toInt()
 
-    private var ttsSupported = TextToSpeech.LANG_NOT_SUPPORTED
     private var isFuriDisplayed = false
     private var previousAnswerWrong = false  // true if and only if wrong choice in the current word
     /** True if all of the words have run out (must be false if [strategy] = PROGRESSIVE) */
@@ -442,8 +440,8 @@ class QuizPresenter(
         // add more more difficult quiz types depending on level
         if (word.level >= Level.MEDIUM) {
             autoTypes.add(QuizType.TYPE_EN_JAP)
-            if (ttsSupported != TextToSpeech.LANG_MISSING_DATA && ttsSupported != TextToSpeech.LANG_NOT_SUPPORTED)
-                autoTypes.add(QuizType.TYPE_AUDIO)
+            // TODO: check if any voice method is available, don't add if nothing is available
+            autoTypes.add(QuizType.TYPE_AUDIO)
         }
         if (word.level >= Level.HIGH) {
             autoTypes.add(QuizType.TYPE_PRONUNCIATION)
@@ -831,10 +829,6 @@ class QuizPresenter(
     override suspend fun saveWordSeenStat(word: Word) {
         statsRepository.addStatEntry(StatAction.WORD_SEEN, word.id,
             Calendar.getInstance().timeInMillis, StatResult.OTHER)
-    }
-
-    override fun setTTSSupported(ttsSupported: Int) {
-        this.ttsSupported = ttsSupported
     }
 
     override fun getTTSForCurrentItem(): String {

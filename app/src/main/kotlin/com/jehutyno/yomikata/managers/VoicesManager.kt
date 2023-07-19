@@ -5,9 +5,11 @@ import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.speech.tts.TextToSpeech
+import android.speech.tts.TextToSpeech.OnInitListener
 import android.widget.Toast
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player.COMMAND_RELEASE
+import androidx.media3.common.Player.COMMAND_SET_SPEED_AND_PITCH
 import androidx.media3.exoplayer.ExoPlayer
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.model.Sentence
@@ -26,15 +28,42 @@ import com.jehutyno.yomikata.util.*
  *
  * This should always be called from the Main Thread.
  *
- * Remember to call releasePlayer() in the onDestroy method of an activity/fragment!
+ * Remember to call [destroy] in the onDestroy method of an activity/fragment!
  *
  * @property context Context
+ * @param onInitListener Something that implements onInit (usually, the activity or fragment itself)
  * @constructor Create Voices manager
  */
-class VoicesManager(private val context: Context) {
+class VoicesManager(private val context: Context, private val onInitListener: OnInitListener): OnInitListener {
 
+    private val tts = TextToSpeech(context, this)
+    private var ttsSupported = TextToSpeech.LANG_NOT_SUPPORTED
     private val exoPlayer = ExoPlayer.Builder(context).build()
-    private val volumeWarning: Toast = Toast.makeText(context, R.string.message_adjuste_volume, Toast.LENGTH_LONG)
+    private val volumeWarning: Toast = Toast.makeText(
+        context, R.string.message_adjuste_volume, Toast.LENGTH_LONG
+    )
+
+
+    override fun onInit(status: Int) {
+        ttsSupported = context.onTTSinit(status, tts)
+        onInitListener.onInit(status)
+    }
+
+    /**
+     * Set speech rate
+     *
+     * @param rate Factor to change speed by (e.g. 1.0 is normal, 0.5 is half speed)
+     */
+    fun setSpeechRate(rate: Float) {
+        tts.setSpeechRate(rate)
+        if (exoPlayer.isCommandAvailable(COMMAND_SET_SPEED_AND_PITCH)) {
+            exoPlayer.setPlaybackSpeed(rate)
+        }
+    }
+
+    fun getSpeechAvailability(level: Int): SpeechAvailability {
+        return checkSpeechAvailability(context, ttsSupported, level)
+    }
 
     private fun playUriWhenReady(uri: Uri) {
         val mediaItem = MediaItem.fromUri(uri)
@@ -77,24 +106,22 @@ class VoicesManager(private val context: Context) {
      * Will stop any previous sound and play the sentence.
      *
      * @param sentence Sentence to play
-     * @param ttsSupported
-     * @param tts TextToSpeech instance to use
      * @param userAction True if the user chose to play this, false otherwise
      */
-    fun speakSentence(sentence: Sentence, ttsSupported: Int, tts: TextToSpeech?, userAction: Boolean) {
+    fun speakSentence(sentence: Sentence, userAction: Boolean) {
         if (userAction) // don't display warning if the audio is automatic (in case user doesn't want volume)
             warningLowVolume()
 
-        when (checkSpeechAvailability(context, ttsSupported, sentence.level)) {
+        when (getSpeechAvailability(sentence.level)) {
             SpeechAvailability.VOICES_AVAILABLE -> {
                 speakExo("s", sentence.id, sentence.level)
             }
             SpeechAvailability.TTS_AVAILABLE -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    tts?.speak(sentenceNoFuri(sentence), TextToSpeech.QUEUE_FLUSH, null, null)
+                    tts.speak(sentenceNoFuri(sentence), TextToSpeech.QUEUE_FLUSH, null, null)
                 } else {    // remove this if minBuildVersion >= 21 (LOLLIPOP)
                     @Suppress("DEPRECATION")
-                    tts?.speak(sentenceNoFuri(sentence), TextToSpeech.QUEUE_FLUSH, null)
+                    tts.speak(sentenceNoFuri(sentence), TextToSpeech.QUEUE_FLUSH, null)
                 }
             }
             else -> speechNotSupportedAlert(context, sentence.level) {}
@@ -107,17 +134,15 @@ class VoicesManager(private val context: Context) {
      * Will stop any previous sound and play the word.
      *
      * @param word Word to play
-     * @param ttsSupported
-     * @param tts TextToSpeech instance to use
      * @param userAction True if the user chose to play this, false otherwise
      */
-    fun speakWord(word: Word, ttsSupported: Int, tts: TextToSpeech?, userAction: Boolean) {
+    fun speakWord(word: Word, userAction: Boolean) {
         if (userAction) // don't display warning if the audio is automatic (in case user doesn't want volume)
             warningLowVolume()
 
         val level = getCategoryLevel(word.baseCategory)
 
-        when (checkSpeechAvailability(context, ttsSupported, level)) {
+        when (getSpeechAvailability(level)) {
             SpeechAvailability.VOICES_AVAILABLE -> {
                 speakExo("w", word.id, level)
             }
@@ -129,10 +154,10 @@ class VoicesManager(private val context: Context) {
                     word.reading.split("/")[0].split(";")[0]
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    tts?.speak(say, TextToSpeech.QUEUE_FLUSH, null,null)
+                    tts.speak(say, TextToSpeech.QUEUE_FLUSH, null,null)
                 } else {    // remove this if minBuildVersion >= 21 (LOLLIPOP)
                     @Suppress("DEPRECATION")
-                    tts?.speak(say, TextToSpeech.QUEUE_FLUSH, null)
+                    tts.speak(say, TextToSpeech.QUEUE_FLUSH, null)
                 }
             }
             else -> speechNotSupportedAlert(context, level) {}
@@ -140,15 +165,17 @@ class VoicesManager(private val context: Context) {
     }
 
     /**
-     * Release player
+     * Destroy
      *
-     * Call this when you no longer need the ExoPlayer.
+     * Call this when you no longer need the ExoPlayer and TTS.
      * Do not use the VoicesManager after calling this.
      */
-    fun releasePlayer() {
+    fun destroy() {
         if (exoPlayer.isCommandAvailable(COMMAND_RELEASE)) {
             exoPlayer.release()
         }
+        tts.stop()
+        tts.shutdown()
     }
 
 }

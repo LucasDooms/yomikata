@@ -1,6 +1,7 @@
 package com.jehutyno.yomikata.screens.word
 
 import android.app.Dialog
+import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
@@ -25,13 +26,14 @@ import com.jehutyno.yomikata.util.getLevelFromPoints
 import com.jehutyno.yomikata.util.getSerializableHelper
 import com.jehutyno.yomikata.util.levelDown
 import com.jehutyno.yomikata.util.levelUp
-import com.jehutyno.yomikata.util.onTTSinit
 import com.jehutyno.yomikata.util.reportError
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.kodein.di.DI
+import org.kodein.di.DITrigger
 import org.kodein.di.bind
 import org.kodein.di.instance
+import org.kodein.di.on
 import org.kodein.di.provider
 
 
@@ -45,15 +47,17 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
     private val subDI = DI.lazy {
         extend(di)
         bind<WordContract.Presenter>() with provider {
-            WordPresenter (
+            WordPresenter(
                 instance(), instance(), instance(),
                 instance(arg = lifecycleScope), instance(),
                 quizIds, level, searchString
             )
         }
+        bind<Context>(overrides = true) with instance(requireContext())
     }
     private val wordPresenter: WordContract.Presenter by subDI.instance()
-    private val voicesManager: VoicesManager by subDI.instance()
+    private val voicesManagerTrigger = DITrigger()
+    private val voicesManager: VoicesManager by subDI.on(trigger = voicesManagerTrigger).instance(arg = this)
 
     private lateinit var adapter: WordPagerAdapter
     private var locked: Boolean = true     // if locked -> don't adapt to database changes
@@ -66,18 +70,12 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
     private var quizTitle: String? = ""
     private var level: Level? = null
 
-    private var tts: TextToSpeech? = null
-    private var ttsSupported: Int = TextToSpeech.LANG_NOT_SUPPORTED
-
     // View Binding
     private var _binding: DialogWordDetailBinding? = null
     private val binding get () = _binding!!
 
 
-    override fun onInit(status: Int) {
-        if (activity != null)
-            ttsSupported = onTTSinit(activity, status, tts)
-    }
+    override fun onInit(status: Int) {}
 
     override fun onStart() {
         super.onStart()
@@ -99,7 +97,6 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
         // set binding here instead of in onCreateView, since onCreateDialog is called first
         _binding = DialogWordDetailBinding.inflate(layoutInflater)
 
-        tts = TextToSpeech(activity, this)
         if (arguments != null) {
             wordId = requireArguments().getLong(Extras.EXTRA_WORD_ID, -1L)
 
@@ -134,6 +131,11 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
         binding.arrowRight.setOnClickListener { binding.viewpagerWords.setCurrentItem(binding.viewpagerWords.currentItem + 1, true) }
 
         return dialog
+    }
+
+    override fun onAttach(context: Context) {
+        voicesManagerTrigger.trigger()
+        super.onAttach(context)
     }
 
     fun setArrowDisplay(position: Int) {
@@ -208,11 +210,11 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
     }
 
     override fun onWordTTSClick(word: Word) {
-        voicesManager.speakWord(word, ttsSupported, tts, true)
+        voicesManager.speakWord(word, true)
     }
 
     override fun onSentenceTTSClick(sentence: Sentence) {
-        voicesManager.speakSentence(sentence, ttsSupported, tts, true)
+        voicesManager.speakSentence(sentence, true)
     }
 
     override fun onLevelUp(word: MutableLiveData<Word>) = runBlocking {
@@ -247,9 +249,7 @@ class WordDetailDialogFragment(private val di: DI) : DialogFragment(), WordContr
     }
 
     override fun onDestroy() {
-        tts?.stop()
-        tts?.shutdown()
-        voicesManager.releasePlayer()
+        voicesManager.destroy()
         super.onDestroy()
     }
 }
