@@ -255,4 +255,8 @@
     <string name="translate_to_english_hint">Translate to English</string>
     <string name="remove_x_words">Remove %d words?</string>
     <string name="unknown_error">Something went wrong</string>
+    <string name="check_mark_description">correct</string>
+    <string name="reset_volume">reset volume</string>
+    <string name="reset_speech_rate">reset speech rate</string>
+    <string name="close">close</string>
 </resources>

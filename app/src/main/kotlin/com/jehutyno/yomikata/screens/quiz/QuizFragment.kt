@@ -272,13 +272,14 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
 
         // VOLUME
         binding.seekVolume.max = 100
-        val volume = pref.getInt(Prefs.SPEECH_VOLUME.pref, 100)
+        val defaultVolume = 100
+        val volume = pref.getInt(Prefs.SPEECH_VOLUME.pref, defaultVolume)
         binding.seekVolume.progress = volume
-        voicesManager.setVolume(volume.toFloat() / 100)
+        voicesManager.setVolume(volume.toFloat() / binding.seekVolume.max)
         binding.seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                 pref.edit().putInt(Prefs.SPEECH_VOLUME.pref, p1).apply()
-                voicesManager.setVolume(p1.toFloat() / 100)
+                voicesManager.setVolume(p1.toFloat() / binding.seekVolume.max)
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {
@@ -289,16 +290,23 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
             }
 
         })
+
+        binding.resetVolume.setOnClickListener {
+            binding.seekVolume.progress = defaultVolume
+            voicesManager.setVolume(defaultVolume.toFloat() / binding.seekVolume.max)
+        }
 
         // SPEECH RATE
         binding.seekSpeed.max = 150
-        val rate = pref.getInt(Prefs.TTS_RATE.pref, 50)
+        val defaultRate = 50
+        val rate = pref.getInt(Prefs.TTS_RATE.pref, defaultRate)
         binding.seekSpeed.progress = rate
-        voicesManager.setSpeechRate((rate + 50).toFloat() / 100)
+        val rateConvert = { _rate: Int -> (_rate + 50).toFloat() / 100 }
+        voicesManager.setSpeechRate(rateConvert(rate))
         binding.seekSpeed.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                 pref.edit().putInt(Prefs.TTS_RATE.pref, p1).apply()
-                voicesManager.setSpeechRate((p1 + 50).toFloat() / 100)
+                voicesManager.setSpeechRate(rateConvert(p1))
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {
@@ -309,6 +317,12 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
             }
 
         })
+
+        binding.resetSpeed.setOnClickListener {
+            binding.seekSpeed.progress = defaultRate
+            voicesManager.setSpeechRate(rateConvert(defaultRate))
+        }
+
         binding.settingsContainer.translationY = -400f
         binding.settingsClose.setOnClickListener {
             closeTTSSettings()

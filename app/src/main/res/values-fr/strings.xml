@@ -227,4 +227,8 @@
     <string name="translate_to_english_hint">Traduisez en Français</string>
     <string name="remove_x_words">Supprimer %d mots ?</string>
     <string name="unknown_error">Quelque chose n\'a pas fonctionné</string>
+    <string name="check_mark_description">correct</string>
+    <string name="reset_volume">réinitialiser le volume</string>
+    <string name="reset_speech_rate">réinitialiser le débit de parole</string>
+    <string name="close">fermer</string>
 </resources>
