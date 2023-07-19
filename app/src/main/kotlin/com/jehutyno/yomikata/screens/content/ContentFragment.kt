@@ -24,6 +24,7 @@ import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.screens.quiz.QuizActivity
 import com.jehutyno.yomikata.screens.word.WordDetailDialogFragment
 import com.jehutyno.yomikata.screens.word.WordsAdapter
+import com.jehutyno.yomikata.util.Categories
 import com.jehutyno.yomikata.util.Extras
 import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.Prefs
@@ -92,8 +93,10 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
 
         requireArguments().also { args ->
             quizIds = args.getLongArray(Extras.EXTRA_QUIZ_IDS)!!
-            selection = args.getSerializableHelper(Extras.EXTRA_SELECTION, Quiz::class.java)
             category = args.getInt(Extras.EXTRA_CATEGORY)
+            if (category == Categories.CATEGORY_SELECTIONS) {
+                selection = args.getSerializableHelper(Extras.EXTRA_SELECTION, Quiz::class.java)
+            }
             selectedTypes = args.getParcelableArrayListHelper(Extras.EXTRA_QUIZ_TYPES, QuizType::class.java)!!
         }
 
