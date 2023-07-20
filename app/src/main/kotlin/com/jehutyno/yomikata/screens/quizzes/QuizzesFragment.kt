@@ -382,7 +382,6 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
             {
                 runBlocking {
                     mpresenter.deleteQuiz(adapter.items[position].id)
-                    adapter.deleteItem(position)
                 }
             }
         )

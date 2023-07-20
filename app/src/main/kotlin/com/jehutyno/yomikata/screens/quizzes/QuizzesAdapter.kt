@@ -121,9 +121,4 @@ class QuizzesAdapter(val category: Int, private val callback: Callback, private 
         fun addSelection()
     }
 
-    fun deleteItem(position: Int) {
-        items.removeAt(position)
-        notifyItemRemoved(position)
-    }
-
 }
