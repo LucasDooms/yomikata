@@ -58,11 +58,14 @@ class WordSelectorActionModeCallback (
      *
      * @param selections List of all user selection quizzes
      * @param item The MenuItem that was clicked (to which the popup will attach)
+     * @param showNew True if it should show the "New Selection" option at the top, False otherwise
      * @return The created PopupMenu, which is not shown yet
      */
-    private fun setupPopupMenu(selections: List<Quiz>, item: MenuItem): PopupMenu {
+    private fun setupPopupMenu(selections: List<Quiz>, item: MenuItem, showNew: Boolean): PopupMenu {
         val popup = PopupMenu(activity, activity.findViewById(item.itemId))
-        popup.menuInflater.inflate(R.menu.popup_selections, popup.menu)
+        if (showNew) {
+            popup.menuInflater.inflate(R.menu.popup_selections, popup.menu)
+        }
         for ((i, selection) in selections.withIndex()) {
             if (selection == this.selection)
                 continue    // skip if it is the selection category in which we are selecting words
@@ -78,7 +81,7 @@ class WordSelectorActionModeCallback (
             }
         when (item.itemId) {
             ADD_TO_SELECTIONS -> {
-                val popup = setupPopupMenu(selections, item)
+                val popup = setupPopupMenu(selections, item, true)
                 popup.setOnMenuItemClickListener { popItem ->
                     when (popItem.itemId) {
                         R.id.add_selection -> addSelection()
@@ -115,7 +118,7 @@ class WordSelectorActionModeCallback (
                         }.show()
                     }
                 } else {
-                    val popup = setupPopupMenu(selections, item)
+                    val popup = setupPopupMenu(selections, item, false)
                     popup.setOnMenuItemClickListener { popItem ->
                         deleteWords(selectedWords, selections[popItem.itemId].id)
                         popItem.isChecked = !popItem.isChecked
