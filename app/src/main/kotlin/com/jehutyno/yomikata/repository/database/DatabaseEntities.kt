@@ -15,6 +15,7 @@ import com.jehutyno.yomikata.model.Radical
 import com.jehutyno.yomikata.model.Sentence
 import com.jehutyno.yomikata.model.StatEntry
 import com.jehutyno.yomikata.model.Word
+import com.jehutyno.yomikata.util.toCategory
 import com.jehutyno.yomikata.util.toLevel
 
 
@@ -28,12 +29,12 @@ data class RoomQuiz (
 ) {
     companion object {
         fun from(quiz: Quiz): RoomQuiz {
-            return RoomQuiz(quiz.id, quiz.nameEn, quiz.nameFr, quiz.category, quiz.isSelected)
+            return RoomQuiz(quiz.id, quiz.nameEn, quiz.nameFr, quiz.category.index, quiz.isSelected)
         }
     }
 
     fun toQuiz(): Quiz {
-        return Quiz(_id, name_en, name_fr, category, isSelected)
+        return Quiz(_id, name_en, name_fr, category.toCategory(), isSelected)
     }
 }
 
@@ -68,14 +69,14 @@ data class RoomWords (
             return RoomWords(word.id, word.japanese, word.english, word.french,
                              word.reading, word.level.level, word.countSuccess,
                              word.countFail, word.isKana, word.repetition, word.points,
-                             word.baseCategory, word.sentenceId)
+                             word.baseCategory.index, word.sentenceId)
         }
     }
 
     fun toWord(): Word {
         return Word(
             _id, japanese, english, french, reading, level.toLevel(), count_success,
-            count_fail, is_kana, repetition, points, base_category, 0, sentence_id
+            count_fail, is_kana, repetition, points, base_category.toCategory(), 0, sentence_id
         )
     }
 }

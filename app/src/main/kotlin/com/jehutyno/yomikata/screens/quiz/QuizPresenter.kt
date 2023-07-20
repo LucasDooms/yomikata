@@ -22,7 +22,7 @@ import com.jehutyno.yomikata.util.Prefs
 import com.jehutyno.yomikata.util.QuizStrategy
 import com.jehutyno.yomikata.util.QuizType
 import com.jehutyno.yomikata.util.addPoints
-import com.jehutyno.yomikata.util.getCategoryLevel
+import com.jehutyno.yomikata.util.getLevel
 import com.jehutyno.yomikata.util.getLevelFromPoints
 import com.jehutyno.yomikata.util.getParcelableArrayListHelper
 import com.jehutyno.yomikata.util.getParcelableHelper
@@ -806,7 +806,7 @@ class QuizPresenter(
      * @return A random sentence containing the Word.
      */
     override suspend fun getRandomSentence(word: Word): Sentence {
-        val sentence = sentenceRepository.getRandomSentence(word, getCategoryLevel(word.baseCategory))
+        val sentence = sentenceRepository.getRandomSentence(word, word.baseCategory.getLevel())
         return if (word.isKana == 2 || sentence == null)
             sentenceRepository.getSentenceById(word.sentenceId!!)
         else

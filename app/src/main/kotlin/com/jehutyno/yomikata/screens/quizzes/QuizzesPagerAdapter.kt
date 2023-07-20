@@ -1,13 +1,11 @@
-package com.jehutyno.yomikata.screens.content
+package com.jehutyno.yomikata.screens.quizzes
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.screens.home.HomeFragment
-import com.jehutyno.yomikata.screens.quizzes.QuizzesActivity
-import com.jehutyno.yomikata.screens.quizzes.QuizzesFragment
-import com.jehutyno.yomikata.util.Categories
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.Extras
 import org.kodein.di.DI
 
@@ -17,50 +15,42 @@ import org.kodein.di.DI
  */
 class QuizzesPagerAdapter(activity: QuizzesActivity, private val di: DI) : FragmentStateAdapter(activity) {
 
-    val categories = intArrayOf(Categories.HOME,
-        Categories.CATEGORY_SELECTIONS,
-        Categories.CATEGORY_HIRAGANA,
-        Categories.CATEGORY_KATAKANA,
-        Categories.CATEGORY_KANJI,
-        Categories.CATEGORY_COUNTERS,
-        Categories.CATEGORY_JLPT_5,
-        Categories.CATEGORY_JLPT_4,
-        Categories.CATEGORY_JLPT_3,
-        Categories.CATEGORY_JLPT_2,
-        Categories.CATEGORY_JLPT_1)
-//    val registered: SparseArray<Fragment> = SparseArray()
+    val categories = Category.values()
 
     override fun getItemCount(): Int {
         return categories.size
     }
 
     override fun createFragment(position: Int): Fragment {
-        return if (categories[position] == Categories.HOME) {
+        return if (categories[position] == Category.HOME) {
             HomeFragment(di)
         } else {
             val bundle = Bundle()
-            bundle.putInt(Extras.EXTRA_CATEGORY, categories[position])
+            bundle.putSerializable(Extras.EXTRA_CATEGORY, categories[position])
             val quizzesFragment = QuizzesFragment(di)
             quizzesFragment.arguments = bundle
             quizzesFragment
         }
     }
 
-    fun positionFromCategory(selectedCategory: Int): Int {
-        return when (selectedCategory) {
-            Categories.HOME -> 0
-            Categories.CATEGORY_SELECTIONS -> 1
-            Categories.CATEGORY_HIRAGANA -> 2
-            Categories.CATEGORY_KATAKANA -> 3
-            Categories.CATEGORY_KANJI -> 4
-            Categories.CATEGORY_COUNTERS -> 5
-            Categories.CATEGORY_JLPT_5 -> 6
-            Categories.CATEGORY_JLPT_4 -> 7
-            Categories.CATEGORY_JLPT_3 -> 8
-            Categories.CATEGORY_JLPT_2 -> 9
-            else -> 10
+    companion object {
+        fun positionFromCategory(selectedCategory: Category): Int {
+            return when (selectedCategory) {
+                Category.HOME -> 0
+                Category.SELECTIONS -> 1
+                Category.HIRAGANA -> 2
+                Category.KATAKANA -> 3
+                Category.KANJI -> 4
+                Category.COUNTERS -> 5
+                Category.JLPT_5 -> 6
+                Category.JLPT_4 -> 7
+                Category.JLPT_3 -> 8
+                Category.JLPT_2 -> 9
+                Category.JLPT_1 -> 10
+            }
         }
     }
+
 
     fun getMenuItemFromPosition(position: Int): Int {
         return when (position) {

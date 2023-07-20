@@ -19,6 +19,7 @@ import com.jehutyno.yomikata.databinding.ActivityContentBinding
 import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.repository.QuizRepository
 import com.jehutyno.yomikata.repository.local.StatsSource
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.Extras
 import com.jehutyno.yomikata.util.Extras.EXTRA_LEVEL
 import com.jehutyno.yomikata.util.Extras.EXTRA_QUIZ_IDS
@@ -49,7 +50,7 @@ class ContentActivity : AppCompatActivity(), DIAware {
     private lateinit var selectedTypes: ArrayList<QuizType>
     private lateinit var quizzes: List<Quiz>
 
-    private var category: Int = -1
+    private lateinit var category: Category
     private var level: Level? = null
 
     private var contentLevelFragment: ContentLevelFragment? = null
@@ -84,7 +85,7 @@ class ContentActivity : AppCompatActivity(), DIAware {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
 
-        category = intent.getIntExtra(Extras.EXTRA_CATEGORY, -1)
+        category = intent.getSerializableExtraHelper(Extras.EXTRA_CATEGORY, Category::class.java)!!
         level = intent.getSerializableExtraHelper(EXTRA_LEVEL, Level::class.java)
 
         val quizPosition = intent.getIntExtra(EXTRA_QUIZ_POSITION, -1)
@@ -177,7 +178,7 @@ class ContentActivity : AppCompatActivity(), DIAware {
                 bundle.putSerializable(EXTRA_LEVEL, level)
                 // general
                 bundle.putLongArray(EXTRA_QUIZ_IDS, quizIds)
-                bundle.putInt(Extras.EXTRA_CATEGORY, category)
+                bundle.putSerializable(Extras.EXTRA_CATEGORY, category)
                 bundle.putParcelableArrayList(EXTRA_QUIZ_TYPES, selectedTypes)
 
                 contentLevelFragment = ContentLevelFragment(di)

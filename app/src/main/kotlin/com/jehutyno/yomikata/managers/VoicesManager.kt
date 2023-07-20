@@ -177,7 +177,7 @@ class VoicesManager(private val context: Context, private val onInitListener: On
         if (userAction) // don't display warning if the audio is automatic (in case user doesn't want volume)
             warningLowVolume()
 
-        val level = getCategoryLevel(word.baseCategory)
+        val level = word.baseCategory.getLevel()
 
         when (getSpeechAvailability(level)) {
             SpeechAvailability.VOICES_AVAILABLE -> {

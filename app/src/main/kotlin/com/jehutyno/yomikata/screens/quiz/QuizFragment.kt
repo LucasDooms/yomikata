@@ -44,7 +44,7 @@ import com.jehutyno.yomikata.util.QuizType
 import com.jehutyno.yomikata.util.SpeechAvailability
 import com.jehutyno.yomikata.util.cleanForQCM
 import com.jehutyno.yomikata.util.createNewSelectionDialog
-import com.jehutyno.yomikata.util.getCategoryLevel
+import com.jehutyno.yomikata.util.getLevel
 import com.jehutyno.yomikata.util.hideSoftKeyboard
 import com.jehutyno.yomikata.util.reportError
 import com.jehutyno.yomikata.util.speechNotSupportedAlert
@@ -712,9 +712,9 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
             }
             R.id.tts_settings -> {
                 val category = adapter!!.words[binding.pager.currentItem].first.baseCategory
-                when (voicesManager.getSpeechAvailability(getCategoryLevel(category))) {
+                when (voicesManager.getSpeechAvailability(category.getLevel())) {
                     SpeechAvailability.NOT_AVAILABLE -> {
-                        speechNotSupportedAlert(requireActivity(), getCategoryLevel(category)) {}
+                        speechNotSupportedAlert(requireActivity(), category.getLevel()) {}
                     }
                     else -> {
                         if (isSettingsOpen) {

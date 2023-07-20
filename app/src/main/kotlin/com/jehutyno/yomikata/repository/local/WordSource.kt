@@ -6,6 +6,7 @@ import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.repository.WordRepository
 import com.jehutyno.yomikata.repository.database.RoomQuizWord
 import com.jehutyno.yomikata.repository.database.RoomWords
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.HiraganaUtils
 import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.QuizType
@@ -200,7 +201,7 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
             val newWord = Word(
                 0, updateWord.japanese, updateWord.english, updateWord.french,
                 updateWord.reading, Level.LOW, 0, 0,
-                0, 0, 0, 0, 0, 0
+                0, 0, 0, Category.HOME, 0, 0
             )
             wordDao.updateWord(RoomWords.from(newWord))
         }

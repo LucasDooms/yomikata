@@ -3,7 +3,7 @@ package com.jehutyno.yomikata.presenters.source
 import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.presenters.SelectionsInterface
 import com.jehutyno.yomikata.repository.QuizRepository
-import com.jehutyno.yomikata.util.Categories
+import com.jehutyno.yomikata.util.Category
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
@@ -29,7 +29,7 @@ class SelectionsPresenter(private val quizRepository: QuizRepository,
 
     init {
         job = coroutineScope.launch {
-            selectionsStateFlow = quizRepository.getQuiz(Categories.CATEGORY_SELECTIONS).stateIn(coroutineScope)
+            selectionsStateFlow = quizRepository.getQuiz(Category.SELECTIONS).stateIn(coroutineScope)
         }
     }
 
@@ -55,7 +55,7 @@ class SelectionsPresenter(private val quizRepository: QuizRepository,
      * @return Id of the new Quiz in the database
      */
     override suspend fun createSelection(quizName: String): Long {
-        return quizRepository.saveQuiz(quizName, Categories.CATEGORY_SELECTIONS)
+        return quizRepository.saveQuiz(quizName, Category.SELECTIONS)
     }
 
     // TODO: add check to see if quizId corresponds to a selection?

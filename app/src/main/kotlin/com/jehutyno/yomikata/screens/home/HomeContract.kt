@@ -3,6 +3,7 @@ package com.jehutyno.yomikata.screens.home
 import androidx.lifecycle.LiveData
 import com.jehutyno.yomikata.BasePresenter
 import com.jehutyno.yomikata.model.StatEntry
+import com.jehutyno.yomikata.util.Category
 
 
 /**
@@ -11,7 +12,7 @@ import com.jehutyno.yomikata.model.StatEntry
 interface HomeContract {
 
     interface View {
-        fun onMenuItemClick(category: Int)
+        fun onMenuItemClick(category: Category)
 
         fun displayTodayStats(stats: List<StatEntry>)
         fun displayThisWeekStats(stats: List<StatEntry>)

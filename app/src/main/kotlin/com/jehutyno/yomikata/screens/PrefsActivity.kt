@@ -16,7 +16,7 @@ import androidx.preference.PreferenceManager
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.YomikataZKApplication
 import com.jehutyno.yomikata.repository.database.YomikataDatabase
-import com.jehutyno.yomikata.util.Categories
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.FileUtils
 import com.jehutyno.yomikata.util.Prefs
 import com.jehutyno.yomikata.util.RestartDialogMessage
@@ -138,7 +138,7 @@ class PrefsActivity : AppCompatActivity() {
                     PreferencesManager(activity).resetAll()
                     // tell quizzes activity to start in home screen fragment
                     val intent = Intent()
-                    intent.putExtra("gotoCategory", Categories.HOME)
+                    intent.putExtra("gotoCategory", Category.HOME)
                     requireActivity().setResult(RESULT_OK, intent)
                     requireActivity().finish()
                     return true

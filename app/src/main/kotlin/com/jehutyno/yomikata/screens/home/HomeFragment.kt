@@ -18,12 +18,14 @@ import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.FragmentHomeBinding
 import com.jehutyno.yomikata.model.StatEntry
 import com.jehutyno.yomikata.screens.quizzes.QuizzesActivity
-import com.jehutyno.yomikata.util.Categories
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.Prefs
 import com.jehutyno.yomikata.util.contactDiscord
 import com.jehutyno.yomikata.util.contactFacebook
 import com.jehutyno.yomikata.util.contactPlayStore
+import com.jehutyno.yomikata.util.getBigIcon
 import com.jehutyno.yomikata.util.shareApp
+import com.jehutyno.yomikata.util.toCategory
 import org.kodein.di.DI
 import org.kodein.di.instance
 import org.kodein.di.newInstance
@@ -48,7 +50,7 @@ class HomeFragment(di: DI) : Fragment(), HomeContract.View {
     private val binding get() = _binding!!
 
 
-    override fun onMenuItemClick(category: Int) {
+    override fun onMenuItemClick(category: Category) {
 
     }
 
@@ -155,9 +157,9 @@ class HomeFragment(di: DI) : Fragment(), HomeContract.View {
 
         if (cat1 != -1) {
             binding.lastCategory1.visibility = VISIBLE
-            binding.lastCategory1.setImageResource(getCategoryResId(cat1))
+            binding.lastCategory1.setImageResource(cat1.toCategory().getBigIcon())
             binding.lastCategory1.setOnClickListener {
-                (activity as QuizzesActivity).gotoCategory(cat1)
+                (activity as QuizzesActivity).gotoCategory(cat1.toCategory())
             }
         } else {
             binding.lastCategory1.visibility = GONE
@@ -165,9 +167,9 @@ class HomeFragment(di: DI) : Fragment(), HomeContract.View {
 
         if (cat2 != -1) {
             binding.lastCategory2.visibility = VISIBLE
-            binding.lastCategory2.setImageResource(getCategoryResId(cat2))
+            binding.lastCategory2.setImageResource(cat2.toCategory().getBigIcon())
             binding.lastCategory2.setOnClickListener {
-                (activity as QuizzesActivity).gotoCategory(cat2)
+                (activity as QuizzesActivity).gotoCategory(cat2.toCategory())
             }
         } else {
             binding.lastCategory2.visibility = GONE
@@ -175,40 +177,6 @@ class HomeFragment(di: DI) : Fragment(), HomeContract.View {
         binding.noCategories.visibility = if (cat1 == -1 && cat2 == -1) VISIBLE else GONE
     }
 
-    private fun getCategoryResId(category: Int): Int {
-        return when (category) {
-            Categories.CATEGORY_HIRAGANA -> {
-                R.drawable.ic_hiragana_big
-            }
-            Categories.CATEGORY_KATAKANA -> {
-                R.drawable.ic_katakana_big
-            }
-            Categories.CATEGORY_KANJI -> {
-                R.drawable.ic_kanji_big
-            }
-            Categories.CATEGORY_COUNTERS -> {
-                R.drawable.ic_counters_big
-            }
-            Categories.CATEGORY_JLPT_1 -> {
-                R.drawable.ic_jlpt1_big
-            }
-            Categories.CATEGORY_JLPT_2 -> {
-                R.drawable.ic_jlpt2_big
-            }
-            Categories.CATEGORY_JLPT_3 -> {
-                R.drawable.ic_jlpt3_big
-            }
-            Categories.CATEGORY_JLPT_4 -> {
-                R.drawable.ic_jlpt4_big
-            }
-            Categories.CATEGORY_JLPT_5 -> {
-                R.drawable.ic_jlpt5_big
-            }
-            else -> {
-                R.drawable.ic_selections_big
-            }
-        }
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()
