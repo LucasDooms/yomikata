@@ -106,6 +106,11 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
         setContentView(view)
 
         kenburns = binding.imageSectionIcon
+        // this is for testing, because kenburns view doesn't automatically turn off animations
+        val animationsEnabled = intent.getBooleanExtra(Extras.EXTRA_ANIMATIONS_ENABLED, true)
+        if (!animationsEnabled) {
+            kenburns.pause()
+        }
 
         if (resources.getBoolean(R.bool.portrait_only)) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT

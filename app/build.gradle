@@ -27,6 +27,10 @@ android {
         multiDexEnabled true
     }
 
+    testOptions {
+        animationsDisabled = true
+    }
+
     ksp {
         // Room export schemas
         arg('room.schemaLocation', "$projectDir/schemas")
@@ -71,6 +75,8 @@ dependencies {
     // testing
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation "androidx.test:runner:$android_test_runner_version"
+    androidTestImplementation "androidx.test:rules:$android_test_rules_version"
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation 'com.google.truth:truth:1.1.5'
     androidTestImplementation "android.arch.core:core-testing:1.1.1"
