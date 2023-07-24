@@ -9,6 +9,7 @@ import com.jehutyno.yomikata.repository.database.RoomWords
 import com.jehutyno.yomikata.util.HiraganaUtils
 import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.QuizType
+import com.jehutyno.yomikata.util.getLevelFromPoints
 import com.jehutyno.yomikata.util.getNextLevel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -161,12 +162,13 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
             wordDao.deleteWord(roomWord)
     }
 
+    /**
+     * Update word points
+     *
+     * Updates the words Points and associated Level
+     */
     override suspend fun updateWordPoints(wordId: Long, points: Int) {
-        wordDao.updateWordPoints(wordId, points)
-    }
-
-    override suspend fun updateWordLevel(wordId: Long, level: Level) {
-        wordDao.updateWordLevel(wordId, level.level)
+        wordDao.updateWordLevelAndPoints(wordId, getLevelFromPoints(points).level, points)
     }
 
     override suspend fun updateWordRepetition(wordId: Long, repetition: Int) {

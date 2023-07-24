@@ -621,7 +621,6 @@ class QuizPresenter(
 
         // update database word
         updateWordPoints(word.id, newPoints)
-        updateWordLevel(word.id, newLevel)
         updateRepetitions(word.id, newRepetition)
         if (result)
             wordRepository.incrementSuccess(word.id)
@@ -754,10 +753,6 @@ class QuizPresenter(
 
     override suspend fun updateWordPoints(wordId: Long, points: Int) {
         wordRepository.updateWordPoints(wordId, points)
-    }
-
-    override suspend fun updateWordLevel(wordId: Long, level: Level) {
-        wordRepository.updateWordLevel(wordId, level)
     }
 
     override suspend fun getRandomWords(wordId: Long, answer: String, wordSize: Int, limit: Int, quizType: QuizType): ArrayList<Word> {

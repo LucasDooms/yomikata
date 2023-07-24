@@ -7,7 +7,6 @@ import com.jehutyno.yomikata.model.Sentence
 import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.presenters.SelectionsInterface
 import com.jehutyno.yomikata.presenters.WordInQuizInterface
-import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.QuizType
 
 
@@ -54,7 +53,6 @@ interface QuizContract {
     interface Presenter : BasePresenter, SelectionsInterface, WordInQuizInterface {
         suspend fun getWords(): List<Word>
         suspend fun loadWords(): List<Pair<Word, QuizType>>
-        suspend fun updateWordLevel(wordId: Long, level: Level)
         suspend fun getRandomWords(wordId: Long, answer: String, wordSize: Int, limit: Int, quizType: QuizType): ArrayList<Word>
         suspend fun updateWordPoints(wordId: Long, points: Int)
         suspend fun getNextProgressiveWords(): List<Pair<Word, QuizType>>

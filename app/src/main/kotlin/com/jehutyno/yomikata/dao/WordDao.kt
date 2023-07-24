@@ -155,6 +155,12 @@ interface WordDao {
            "WHERE _id = :wordId")
     suspend fun updateWordLevel(wordId: Long, level: Int)
 
+    @Transaction
+    suspend fun updateWordLevelAndPoints(wordId: Long, level: Int, points: Int) {
+        updateWordLevel(wordId, level)
+        updateWordPoints(wordId, points)
+    }
+
     @Query("UPDATE words SET repetition = :repetition WHERE _id = :wordId")
     suspend fun updateWordRepetition(wordId: Long, repetition: Int)
 
