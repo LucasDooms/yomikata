@@ -3,6 +3,7 @@ package com.jehutyno.yomikata.screens.search
 import androidx.lifecycle.LiveData
 import com.jehutyno.yomikata.BasePresenter
 import com.jehutyno.yomikata.model.Word
+import com.jehutyno.yomikata.presenters.LevelInterface
 import com.jehutyno.yomikata.presenters.SelectionsInterface
 import com.jehutyno.yomikata.presenters.WordInQuizInterface
 
@@ -17,7 +18,7 @@ interface SearchResultContract {
         fun displayNoResults()
     }
 
-    interface Presenter: BasePresenter, SelectionsInterface, WordInQuizInterface {
+    interface Presenter: BasePresenter, SelectionsInterface, LevelInterface, WordInQuizInterface {
         val words : LiveData<List<Word>>
         fun updateSearchString(newSearchString: String)
     }
