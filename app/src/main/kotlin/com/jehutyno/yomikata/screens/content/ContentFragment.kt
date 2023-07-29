@@ -64,7 +64,7 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
         bind<ContentContract.Presenter>() with provider {
             ContentPresenter (
                 instance(), instance(),
-                instance(arg = lifecycleScope), instance(arg = quizIds), instance(),
+                instance(arg = lifecycleScope), instance(), instance(arg = quizIds), instance(),
                 quizIds, level
             )
         }
@@ -106,7 +106,7 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
 
         adapter = WordsAdapter(requireActivity(), this)
         actionModeCallback = WordSelectorActionModeCallback (
-            ::requireActivity, adapter, mpresenter, selection
+            ::requireActivity, adapter, mpresenter, mpresenter, selection
         ) { actionMode = null }
         setHasOptionsMenu(true)
     }

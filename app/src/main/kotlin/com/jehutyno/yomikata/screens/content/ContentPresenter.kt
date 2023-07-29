@@ -6,6 +6,7 @@ import androidx.lifecycle.distinctUntilChanged
 import com.jehutyno.yomikata.model.StatAction
 import com.jehutyno.yomikata.model.StatResult
 import com.jehutyno.yomikata.model.Word
+import com.jehutyno.yomikata.presenters.LevelInterface
 import com.jehutyno.yomikata.presenters.SelectionsInterface
 import com.jehutyno.yomikata.presenters.WordCountInterface
 import com.jehutyno.yomikata.presenters.WordInQuizInterface
@@ -23,12 +24,12 @@ class ContentPresenter(
     wordRepository: WordRepository,
     private val statsRepository: StatsRepository,
     selectionsInterface: SelectionsInterface,
+    levelInterface: LevelInterface,
     wordCountInterface: WordCountInterface,
     wordInQuizInterface: WordInQuizInterface,
     quizIds : LongArray, level : Level?) : ContentContract.Presenter,
-                                           SelectionsInterface by selectionsInterface,
-                                           WordCountInterface by wordCountInterface,
-                                           WordInQuizInterface by wordInQuizInterface {
+    SelectionsInterface by selectionsInterface, LevelInterface by levelInterface,
+    WordCountInterface by wordCountInterface, WordInQuizInterface by wordInQuizInterface {
 
     companion object : KLogging()
 
