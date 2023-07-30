@@ -51,11 +51,10 @@ class WordSelectorActionModeCallback (
 
     /** The currently selected words. If you want to use this multiple times, you may want
      *  to assign it to a local variable for better performance and consistency */
-    private val selectedWords get() = adapter.items.filter { item -> item.isSelected.toBool() }
+    private val selectedWords get() = adapter.currentList.filter { item -> item.isSelected.toBool() }
 
     override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-        adapter.checkMode = true
-        adapter.notifyItemRangeChanged(0, adapter.items.size)
+        adapter.setCheckMode(true)
         return false
     }
 
@@ -143,18 +142,18 @@ class WordSelectorActionModeCallback (
                 }
             }
             SELECT_ALL -> {
-                adapter.items.forEach {
+                adapter.currentList.forEach {
                     it.isSelected = 1
                 }
-                adapter.notifyItemRangeChanged(0, adapter.items.size,
-                    WordsAdapter.ChecksChanged(adapter.items.map{ it.isSelected.toBool() }))
+                adapter.notifyItemRangeChanged(0, adapter.currentList.size,
+                    WordsAdapter.ChecksChanged(adapter.currentList.map{ it.isSelected.toBool() }))
             }
             UNSELECT_ALL -> {
-                adapter.items.forEach {
+                adapter.currentList.forEach {
                     it.isSelected = 0
                 }
-                adapter.notifyItemRangeChanged(0, adapter.items.size,
-                    WordsAdapter.ChecksChanged(adapter.items.map{ it.isSelected.toBool() }))
+                adapter.notifyItemRangeChanged(0, adapter.currentList.size,
+                    WordsAdapter.ChecksChanged(adapter.currentList.map{ it.isSelected.toBool() }))
             }
             LEVEL_UP -> {
                 handleLevelUpOrDown(selectedWords, true)
@@ -349,8 +348,7 @@ class WordSelectorActionModeCallback (
     }
 
     override fun onDestroyActionMode(mode: ActionMode?) {
-        adapter.checkMode = false
-        adapter.notifyItemRangeChanged(0, adapter.items.size)
+        adapter.setCheckMode(false)
         onClose?.invoke()
     }
 
