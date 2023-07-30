@@ -170,7 +170,7 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
     }
 
     override fun displayWords(words: List<Word>) {
-        adapter.replaceData(words)
+        adapter.submitList(words)
     }
 
 
@@ -226,7 +226,7 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
                     allWordIds
                 else {
                     // if actionMode -> use currently selected words to start quiz
-                    val currentlySelectedIds = adapter.items
+                    val currentlySelectedIds = adapter.currentList
                         .filter{ it.isSelected.toBool() }.map{ it.id }.toLongArray()
                     if (currentlySelectedIds.isEmpty())
                         allWordIds // but if no words are selected, use all words in quiz anyway

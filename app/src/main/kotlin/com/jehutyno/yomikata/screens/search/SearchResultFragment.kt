@@ -93,7 +93,7 @@ class SearchResultFragment(private val di: DI) : Fragment(), SearchResultContrac
     }
 
     override fun displayResults(words: List<Word>) {
-        adapter.replaceData(words)
+        adapter.submitList(words)
     }
 
     override fun displayNoResults() {
