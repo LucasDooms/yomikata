@@ -2,6 +2,9 @@ package com.jehutyno.yomikata.view
 
 import android.app.ActionBar.LayoutParams
 import android.app.Activity
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.view.ActionMode
 import android.view.Gravity.CENTER
 import android.view.Gravity.CENTER_HORIZONTAL
@@ -13,6 +16,7 @@ import android.widget.CheckBox
 import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.res.ResourcesCompat
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.model.Word
@@ -189,14 +193,22 @@ class WordSelectorActionModeCallback (
      * @param levelUp True if level up, false if level down
      */
     private fun handleLevelUpOrDown(selected: List<Word>, levelUp: Boolean) {
-        if (selected.isEmpty())
+        // if levelUp -> remove MAX
+        // if levelDown -> remove points = 0
+        val filteredWords = selected.filter { word ->
+            if (levelUp)
+                word.level != Level.MAX
+            else
+                word.points != 0
+        }
+        if (filteredWords.isEmpty())
             return
         // if all selected words are the same level, simply level up
         // if they are different levels, show a dialog for confirmation / customization
-        if (selected.map { it.level }.distinct().count() == 1) {
-            applyLevelUpOrDown(selected, levelUp)
+        if (filteredWords.map { it.level }.distinct().count() == 1) {
+            applyLevelUpOrDown(filteredWords, levelUp)
         } else {
-            showLevelingDialog(selected, levelUp)
+            showLevelingDialog(filteredWords, levelUp)
         }
     }
 
@@ -215,9 +227,35 @@ class WordSelectorActionModeCallback (
         val layout = RelativeLayout(activity)
         layout.gravity = CENTER_HORIZONTAL
 
+        val levelToColor = mapOf(
+            Pair(Level.LOW, R.color.level_low_1),
+            Pair(Level.MEDIUM, R.color.level_medium_1),
+            Pair(Level.HIGH, R.color.level_high_1),
+            Pair(Level.MASTER, R.color.level_master_1),
+            Pair(Level.MAX, R.color.level_master_4)
+        )
+        fun getColorSpanned(text: String, level: Level, otherLevel: Level): Spanned {
+            fun getSpanned(spanned: SpannableString, l: Level) {
+                val pos = text.indexOf(l.toString())
+                spanned.setSpan(
+                    ForegroundColorSpan(
+                        ResourcesCompat.getColor(activity.resources, levelToColor[l]!!, null)
+                    ),
+                    pos, pos + l.toString().length, SpannableString.SPAN_INCLUSIVE_INCLUSIVE
+                )
+            }
+            val span = SpannableString(text)
+            getSpanned(span, level)
+            getSpanned(span, otherLevel)
+            return span
+        }
+
         val checkBoxes: MutableMap<Level, CheckBox> = mutableMapOf()
         var prevId: Int? = null
-        Level.values().forEach { level ->
+        val levelsOrdered =
+            if (levelUp) Level.values()
+            else Level.values().reversed().toTypedArray()
+        levelsOrdered.forEach { level ->
             if (level !in groupByLevel) {
                 return@forEach
             }
@@ -226,12 +264,14 @@ class WordSelectorActionModeCallback (
 
             val text = TextView(activity)
             val otherLevel = if (levelUp) getNextLevel(level) else getPreviousLevel(level)
-            text.text = activity.getString(
+            val rawText = activity.getString(
                 R.string.words_from_to,
                 groupByLevel[level]!!.size,
                 level.toString(),
                 otherLevel.toString()
             )
+            text.text = getColorSpanned(rawText, level, otherLevel)
+
             val pd = 20
             text.setPadding(pd, pd, pd, pd)
             text.gravity = CENTER
