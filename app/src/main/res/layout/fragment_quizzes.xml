@@ -263,13 +263,12 @@
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:background="@color/dl_button_color"
-        android:drawableLeft="@drawable/ic_download"
         android:drawablePadding="6dp"
-        android:drawableStart="@drawable/ic_download"
         android:foreground="?attr/selectableItemBackground"
         android:padding="8dp"
         android:text="@string/download_voices"
-        android:textColor="@color/lighter_gray"/>
+        android:textColor="@color/lighter_gray"
+        app:drawableStartCompat="@drawable/ic_download" />
 
 
 </RelativeLayout>

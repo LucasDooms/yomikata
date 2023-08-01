@@ -24,12 +24,11 @@
             android:id="@+id/quiz_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:drawableTop="@drawable/ic_plus"
             android:layout_centerInParent="true"
             android:textAppearance="@style/TextAppearance.AppCompat.Title"
             android:textColor="@color/lighter_gray"
-            android:text="@string/new_selection"/>
-
+            android:text="@string/new_selection"
+            app:drawableTopCompat="@drawable/ic_plus" />
 
     </RelativeLayout>
 

@@ -61,10 +61,10 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:drawableLeft="@drawable/ic_infos"
             android:drawablePadding="8dp"
             android:text="@string/news"
-            android:textColor="@color/colorAccent" />
+            android:textColor="@color/colorAccent"
+            app:drawableLeftCompat="@drawable/ic_infos" />
 
         <com.ms.square.android.expandabletextview.ExpandableTextView
             xmlns:expandableTextView="http://schemas.android.com/apk/res-auto"
@@ -98,10 +98,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:drawableLeft="@drawable/ic_yomi"
             android:drawablePadding="8dp"
             android:text="@string/last_categories"
-            android:textColor="@color/colorAccent" />
+            android:textColor="@color/colorAccent"
+            app:drawableLeftCompat="@drawable/ic_yomi" />
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -165,10 +165,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:drawableLeft="@drawable/ic_today"
             android:drawablePadding="8dp"
             android:text="@string/today"
-            android:textColor="@color/colorAccent" />
+            android:textColor="@color/colorAccent"
+            app:drawableLeftCompat="@drawable/ic_today" />
 
         <LinearLayout
             android:id="@+id/today"
@@ -183,37 +183,37 @@
                 android:id="@+id/today_quiz_launch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_quiz"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/quiz_launched" />
+                tools:text="@string/quiz_launched"
+                app:drawableLeftCompat="@drawable/ic_quiz" />
 
             <TextView
                 android:id="@+id/today_words_seen"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_visibility_white_18dp"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/words_seen" />
+                tools:text="@string/words_seen"
+                app:drawableLeftCompat="@drawable/ic_visibility_white_18dp" />
 
             <TextView
                 android:id="@+id/today_good_answer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_check_white_24dp"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/good_answers" />
+                tools:text="@string/good_answers"
+                app:drawableLeftCompat="@drawable/ic_check_white_24dp" />
 
             <TextView
                 android:id="@+id/today_wrong_answer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_clear_white_18dp"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/wrong_answers" />
+                tools:text="@string/wrong_answers"
+                app:drawableLeftCompat="@drawable/ic_clear_white_18dp" />
 
         </LinearLayout>
 
@@ -221,10 +221,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:drawableLeft="@drawable/ic_week"
             android:drawablePadding="8dp"
             android:text="@string/this_week"
-            android:textColor="@color/colorAccent" />
+            android:textColor="@color/colorAccent"
+            app:drawableLeftCompat="@drawable/ic_week" />
 
         <LinearLayout
             android:id="@+id/week"
@@ -241,37 +241,37 @@
                 android:id="@+id/week_quiz_launch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_quiz"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/quiz_launched" />
+                tools:text="@string/quiz_launched"
+                app:drawableLeftCompat="@drawable/ic_quiz" />
 
             <TextView
                 android:id="@+id/week_words_seen"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_visibility_white_18dp"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/words_seen" />
+                tools:text="@string/words_seen"
+                app:drawableLeftCompat="@drawable/ic_visibility_white_18dp" />
 
             <TextView
                 android:id="@+id/week_good_answer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_check_white_24dp"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/good_answers" />
+                tools:text="@string/good_answers"
+                app:drawableLeftCompat="@drawable/ic_check_white_24dp" />
 
             <TextView
                 android:id="@+id/week_wrong_answer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_clear_white_18dp"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/wrong_answers" />
+                tools:text="@string/wrong_answers"
+                app:drawableLeftCompat="@drawable/ic_clear_white_18dp" />
 
         </LinearLayout>
 
@@ -279,10 +279,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:drawableLeft="@drawable/ic_month"
             android:drawablePadding="8dp"
             android:text="@string/this_month"
-            android:textColor="@color/colorAccent" />
+            android:textColor="@color/colorAccent"
+            app:drawableLeftCompat="@drawable/ic_month" />
 
         <LinearLayout
             android:id="@+id/month"
@@ -297,37 +297,37 @@
                 android:id="@+id/month_quiz_launch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_quiz"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/quiz_launched" />
+                tools:text="@string/quiz_launched"
+                app:drawableLeftCompat="@drawable/ic_quiz" />
 
             <TextView
                 android:id="@+id/month_words_seen"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_visibility_white_18dp"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/words_seen" />
+                tools:text="@string/words_seen"
+                app:drawableLeftCompat="@drawable/ic_visibility_white_18dp" />
 
             <TextView
                 android:id="@+id/month_good_answer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_check_white_24dp"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/good_answers" />
+                tools:text="@string/good_answers"
+                app:drawableLeftCompat="@drawable/ic_check_white_24dp" />
 
             <TextView
                 android:id="@+id/month_wrong_answer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_clear_white_18dp"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/wrong_answers" />
+                tools:text="@string/wrong_answers"
+                app:drawableLeftCompat="@drawable/ic_clear_white_18dp" />
 
         </LinearLayout>
 
@@ -354,37 +354,37 @@
                 android:id="@+id/total_quiz_launch"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_quiz"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/quiz_launched" />
+                tools:text="@string/quiz_launched"
+                app:drawableLeftCompat="@drawable/ic_quiz" />
 
             <TextView
                 android:id="@+id/total_words_seen"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_visibility_white_18dp"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/words_seen" />
+                tools:text="@string/words_seen"
+                app:drawableLeftCompat="@drawable/ic_visibility_white_18dp" />
 
             <TextView
                 android:id="@+id/total_good_answer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_check_white_24dp"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/good_answers" />
+                tools:text="@string/good_answers"
+                app:drawableLeftCompat="@drawable/ic_check_white_24dp" />
 
             <TextView
                 android:id="@+id/total_wrong_answer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/ic_clear_white_18dp"
                 android:drawablePadding="8dp"
                 android:textColor="@color/lighter_gray"
-                tools:text="@string/wrong_answers" />
+                tools:text="@string/wrong_answers"
+                app:drawableLeftCompat="@drawable/ic_clear_white_18dp" />
 
         </LinearLayout>
 
