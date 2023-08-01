@@ -67,7 +67,7 @@
         android:layout_marginTop="2dp"
         android:gravity="end"
         android:lines="1"
-        android:text="Kun."
+        android:text="@string/kun"
         android:textColor="@color/lighter_gray"
         android:textSize="12sp"
         android:textStyle="bold" />
@@ -92,7 +92,7 @@
         android:layout_marginTop="2dp"
         android:gravity="end"
         android:lines="1"
-        android:text="On."
+        android:text="@string/on"
         android:textColor="@color/lighter_gray"
         android:textSize="12sp"
         android:textStyle="bold" />

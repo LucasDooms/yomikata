@@ -27,7 +27,10 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:padding="8dp"
-                android:src="@drawable/ic_share" />
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                android:src="@drawable/ic_share"
+                android:contentDescription="@string/share_choose" />
 
             <ImageView
                 android:id="@+id/facebook"
@@ -36,7 +39,10 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:padding="8dp"
-                android:src="@drawable/ic_facebook" />
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                android:src="@drawable/ic_facebook"
+                android:contentDescription="@string/facebook" />
 
             <ImageView
                 android:id="@+id/discord"
@@ -45,7 +51,10 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:padding="8dp"
-                android:src="@drawable/ic_discord" />
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                android:src="@drawable/ic_discord"
+                android:contentDescription="@string/discord" />
 
             <ImageView
                 android:id="@+id/play_store"
@@ -54,7 +63,10 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:padding="8dp"
-                android:src="@drawable/ic_google_play" />
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                android:src="@drawable/ic_google_play"
+                android:contentDescription="@string/google_play_store" />
 
         </LinearLayout>
 
@@ -128,7 +140,8 @@
                     android:padding="12dp"
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_jlpt3_big"
-                    android:textColor="@color/lighter_gray" />
+                    android:textColor="@color/lighter_gray"
+                    android:contentDescription="@string/most_recent_category" />
 
                 <ImageView
                     android:id="@+id/last_category_2"
@@ -143,7 +156,8 @@
                     android:gravity="center"
                     android:padding="12dp"
                     android:src="@drawable/ic_jlpt2_big"
-                    android:textColor="@color/lighter_gray" />
+                    android:textColor="@color/lighter_gray"
+                    android:contentDescription="@string/second_most_recent_category" />
 
             </LinearLayout>
 

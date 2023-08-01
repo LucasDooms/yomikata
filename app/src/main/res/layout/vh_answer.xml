@@ -21,7 +21,8 @@
             android:padding="4dp"
             android:background="@drawable/circle_answer"
             android:layout_margin="8dp"
-            android:src="@drawable/ic_jlpt5"/>
+            android:src="@drawable/ic_jlpt5"
+            android:contentDescription="@string/japanese_word" />
 
         <com.jehutyno.yomikata.furigana.FuriganaView
             android:id="@+id/japanese"
@@ -39,6 +40,7 @@
         android:layout_below="@+id/japanese_container"
         android:layout_marginLeft="60dp"
         android:layout_marginStart="60dp"
+        android:paddingVertical="8dp"
         android:textColor="@color/lighter_gray"
         android:textSize="20sp"
         tools:text="Japan" />
@@ -89,7 +91,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:src="@drawable/ic_volume_circled" />
+            android:minWidth="32dp"
+            android:minHeight="32dp"
+            android:src="@drawable/ic_volume_circled"
+            android:contentDescription="@string/sentence_audio" />
 
     </LinearLayout>
 
@@ -119,10 +124,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
             android:background="@color/transparent"
             android:foreground="?attr/selectableItemBackground"
             android:padding="10dp"
-            android:src="@drawable/ic_star_black_24dp" />
+            android:src="@drawable/ic_star_black_24dp"
+            android:contentDescription="@string/selections" />
 
     </FrameLayout>
 
@@ -134,6 +142,8 @@
         android:layout_below="@+id/container_sentence_tanslation"
         android:layout_toLeftOf="@+id/btn_tts"
         android:layout_toStartOf="@+id/btn_tts"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
         android:background="@color/transparent"
         android:foreground="?attr/selectableItemBackground"
         android:padding="10dp"

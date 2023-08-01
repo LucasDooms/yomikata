@@ -25,7 +25,8 @@
             android:layout_marginEnd="8dp"
             android:layout_marginRight="8dp"
             android:textColor="@color/light_gray"
-            tools:text="1 / 10"/>
+            tools:text="1 / 10"
+            tools:ignore="RelativeOverlap" />
 
         <com.jehutyno.yomikata.furigana.FuriganaView
             android:id="@+id/furi_sentence"
@@ -58,7 +59,7 @@
             android:layout_toLeftOf="@+id/btn_trad"
             android:layout_toStartOf="@+id/btn_trad">
 
-
+            <!-- TODO contentDescription: could also be romaji instead of furi? -->
             <ImageButton
                 android:id="@+id/btn_furi"
                 android:layout_width="wrap_content"
@@ -66,7 +67,28 @@
                 android:layout_gravity="center"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:padding="10dp"
-                android:src="@drawable/ic_hiragana_selector"/>
+                android:src="@drawable/ic_hiragana_selector"
+                android:contentDescription="@string/show_furigana" />
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/container_btn_trad"
+            android:layout_width="43dp"
+            android:layout_height="43dp"
+            android:layout_below="@+id/trad_sentence"
+            android:layout_toStartOf="@+id/container_selection"
+            android:layout_alignParentBottom="true">
+
+            <ImageButton
+                android:id="@+id/btn_trad"
+                android:layout_width="43dp"
+                android:layout_height="43dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="10dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_trad_selector"
+                android:contentDescription="@string/show_translation" />
 
         </FrameLayout>
 
@@ -86,7 +108,8 @@
                 android:layout_gravity="center"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:padding="10dp"
-                android:src="@drawable/ic_star_black_24dp"/>
+                android:src="@drawable/ic_star_black_24dp"
+                android:contentDescription="@string/selections" />
 
         </FrameLayout>
 
@@ -128,19 +151,8 @@
             android:paddingStart="50dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_volume_up_black_48dp"
-            android:tint="@color/lighter_gray"/>
-
-        <ImageButton
-            android:id="@+id/btn_trad"
-            android:layout_width="43dp"
-            android:layout_height="43dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="10dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_trad_selector"
-            android:layout_below="@+id/trad_sentence"
-            android:layout_toLeftOf="@+id/container_selection"
-            android:layout_toStartOf="@+id/container_selection"/>
+            app:tint="@color/lighter_gray"
+            android:contentDescription="@string/word_audio" />
 
         <ImageButton
             android:id="@+id/btn_copy"

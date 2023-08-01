@@ -23,7 +23,8 @@
             android:layout_margin="4dp"
             android:layout_weight="1"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_pronunciation_qcm_selector"/>
+            android:src="@drawable/ic_pronunciation_qcm_selector"
+            android:contentDescription="@string/multiple_choice_reading" />
 
         <FrameLayout
             android:layout_width="0dp"
@@ -36,7 +37,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_jap_en_selector"/>
+                android:src="@drawable/ic_jap_en_selector"
+                android:contentDescription="@string/multiple_choice_japanese_to_english" />
 
             </FrameLayout>
 
@@ -52,7 +54,8 @@
                 android:layout_height="match_parent"
                 android:layout_margin="4dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_en_jap_selector"/>
+                android:src="@drawable/ic_en_jap_selector"
+                android:contentDescription="@string/multiple_choice_english_to_japanese" />
 
         </FrameLayout>
 
@@ -68,7 +71,8 @@
                 android:layout_height="match_parent"
                 android:layout_margin="4dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@drawable/ic_sound_qcm_selector"/>
+                android:src="@drawable/ic_sound_qcm_selector"
+                android:contentDescription="@string/multiple_choice_audio" />
 
         </FrameLayout>
 
@@ -79,7 +83,8 @@
             android:layout_margin="4dp"
             android:layout_weight="1"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_pronunciation_selector"/>
+            android:src="@drawable/ic_pronunciation_selector"
+            android:contentDescription="@string/write_reading" />
 
         <ImageButton
             android:id="@+id/btn_auto_switch"
@@ -88,7 +93,8 @@
             android:layout_margin="4dp"
             android:layout_weight="1"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_auto_selector"/>
+            android:src="@drawable/ic_auto_selector"
+            android:contentDescription="@string/automatically_choose_quiz_type" />
 
 
     </LinearLayout>
@@ -115,7 +121,8 @@
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:padding="3dp"
                 android:src="@drawable/play"
-                android:visibility="invisible"/>
+                android:visibility="invisible"
+                android:contentDescription="@string/master_words" />
 
             <SeekBar
                 android:id="@+id/seek_master"
@@ -151,7 +158,8 @@
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:padding="3dp"
                 android:src="@drawable/play"
-                android:visibility="invisible"/>
+                android:visibility="invisible"
+                android:contentDescription="@string/high_words" />
 
             <SeekBar
                 android:id="@+id/seek_high"
@@ -187,7 +195,8 @@
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:padding="3dp"
                 android:src="@drawable/play"
-                android:visibility="invisible"/>
+                android:visibility="invisible"
+                android:contentDescription="@string/medium_words" />
 
             <SeekBar
                 android:id="@+id/seek_medium"
@@ -223,7 +232,8 @@
                 android:foreground="?attr/selectableItemBackgroundBorderless"
                 android:padding="3dp"
                 android:src="@drawable/play"
-                android:visibility="invisible"/>
+                android:visibility="invisible"
+                android:contentDescription="@string/low_words" />
 
             <SeekBar
                 android:id="@+id/seek_low"

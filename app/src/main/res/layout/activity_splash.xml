@@ -7,7 +7,6 @@
                 android:padding="50dp">
 
     <com.eftimoff.androipathview.PathView
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:id="@+id/pathView"
         android:layout_width="255dp"
         android:layout_height="255dp"
@@ -22,6 +21,7 @@
         android:layout_height="255dp"
         android:visibility="invisible"
         android:layout_centerInParent="true"
-        android:src="@drawable/yomi_logo_splash"/>
+        android:src="@drawable/yomi_logo_splash"
+        android:contentDescription="@string/yomikata_z_logo" />
 
 </RelativeLayout>

@@ -35,6 +35,7 @@
         android:background="@color/transparent"
         android:foreground="?attr/selectableItemBackgroundBorderless"
         android:padding="3dp"
-        android:src="@drawable/arrow_right" />
+        android:src="@drawable/arrow_right"
+        android:contentDescription="@string/next_word" />
 
 </RelativeLayout>
