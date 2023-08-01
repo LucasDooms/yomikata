@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -52,7 +53,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginLeft="12dp"
             android:layout_marginStart="12dp"
             android:textColor="@color/lighter_gray"
             tools:text="signe" />
@@ -78,8 +78,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/kanji_solo_container"
-        android:layout_marginLeft="12dp"
-        android:layout_toRightOf="@+id/kunyomi_title"
+        android:layout_marginStart="12dp"
+        android:layout_toEndOf="@+id/kunyomi_title"
         android:textColor="@color/lighter_gray"
         android:textSize="12sp"
         tools:text="かん" />
@@ -103,10 +103,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/ks_kunyomi"
-        android:layout_marginLeft="12dp"
         android:layout_marginStart="12dp"
         android:layout_toEndOf="@+id/onyomi_title"
-        android:layout_toRightOf="@+id/onyomi_title"
         android:layout_marginTop="2dp"
         android:textColor="@color/lighter_gray"
         android:textSize="12sp"
@@ -132,10 +130,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/ks_onyomi"
         android:layout_marginBottom="4dp"
-        android:layout_marginLeft="12dp"
         android:layout_marginStart="12dp"
         android:layout_toEndOf="@+id/radical_title"
-        android:layout_toRightOf="@+id/radical_title"
         android:layout_marginTop="2dp"
         android:textColor="@color/lighter_gray"
         android:textSize="14sp"
@@ -146,16 +142,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/ks_onyomi"
-        android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="2dp"
         android:layout_toEndOf="@+id/radical"
-        android:layout_toRightOf="@+id/radical"
-        android:drawableLeft="@drawable/ic_stroke"
-        android:drawableStart="@drawable/ic_stroke"
         android:textColor="@color/lighter_gray"
         android:textSize="12sp"
-        tools:text="12" />
+        tools:text="12"
+        app:drawableStartCompat="@drawable/ic_stroke" />
 
     <TextView
         android:id="@+id/radical_trad"
@@ -163,10 +156,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:layout_below="@+id/ks_onyomi"
-        android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
         android:layout_toEndOf="@+id/radical_stroke"
-        android:layout_toRightOf="@+id/radical_stroke"
         android:textColor="@color/lighter_gray"
         android:textSize="12sp"
         tools:text="traduction" />

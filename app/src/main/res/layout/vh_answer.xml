@@ -38,7 +38,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/japanese_container"
-        android:layout_marginLeft="60dp"
         android:layout_marginStart="60dp"
         android:paddingVertical="8dp"
         android:textColor="@color/lighter_gray"
@@ -62,8 +61,7 @@
         android:id="@+id/container_sentence_jap"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/container_answer"
-        android:layout_marginLeft="60dp"
+        android:layout_below="@+id/answer"
         android:layout_marginStart="60dp"
         android:orientation="horizontal">
 
@@ -115,8 +113,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/container_sentence_tanslation"
-        android:layout_toLeftOf="@+id/btn_report"
+        android:layout_below="@+id/sentence_translation"
         android:layout_toStartOf="@+id/btn_report">
 
         <ImageButton
@@ -139,8 +136,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/container_sentence_tanslation"
-        android:layout_toLeftOf="@+id/btn_tts"
+        android:layout_below="@+id/sentence_translation"
         android:layout_toStartOf="@+id/btn_tts"
         android:minWidth="48dp"
         android:minHeight="48dp"
@@ -157,8 +153,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/container_sentence_tanslation"
+        android:layout_below="@+id/sentence_translation"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
         android:background="@color/transparent"
         android:foreground="?attr/selectableItemBackground"
         android:padding="10dp"

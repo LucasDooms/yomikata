@@ -11,7 +11,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@color/toolbarColor"
         android:theme="@style/Toolbar"
-        android:title="Kanji Beginer"/>
+        android:title="@string/drawer_kanji_beginner"/>
 
     <FrameLayout
         android:id="@+id/container_content"

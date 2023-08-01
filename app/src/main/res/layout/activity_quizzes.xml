@@ -104,7 +104,6 @@
                 android:layout_width="0dp"
                 android:layout_height="0dp"
                 android:layout_gravity="bottom|start"
-                android:layout_marginLeft="-15dp"
                 android:layout_marginStart="-15dp"/>
 
             <androidx.viewpager2.widget.ViewPager2

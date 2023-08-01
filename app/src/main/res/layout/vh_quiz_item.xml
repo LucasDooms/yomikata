@@ -21,9 +21,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
             android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
             android:textColor="@color/light_gray"
             tools:text="1 / 10"
             tools:ignore="RelativeOverlap" />
@@ -56,8 +54,8 @@
             android:layout_width="43dp"
             android:layout_height="43dp"
             android:layout_below="@+id/trad_sentence"
-            android:layout_toLeftOf="@+id/btn_trad"
-            android:layout_toStartOf="@+id/btn_trad">
+            android:layout_toStartOf="@+id/container_btn_trad"
+            android:layout_alignParentBottom="true">
 
             <!-- TODO contentDescription: could also be romaji instead of furi? -->
             <ImageButton
@@ -97,9 +95,8 @@
             android:layout_width="43dp"
             android:layout_height="43dp"
             android:layout_below="@+id/trad_sentence"
-            android:layout_toLeftOf="@+id/btn_report"
-            android:layout_toStartOf="@+id/btn_report">
-
+            android:layout_toStartOf="@+id/btn_report"
+            android:layout_alignParentBottom="true">
 
             <ImageButton
                 android:id="@+id/btn_selection"
@@ -113,14 +110,13 @@
 
         </FrameLayout>
 
-
         <ImageButton
             android:id="@+id/btn_report"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignWithParentIfMissing="true"
             android:layout_below="@+id/trad_sentence"
-            android:layout_toLeftOf="@+id/btn_tts"
+            android:layout_alignParentBottom="true"
             android:layout_toStartOf="@+id/btn_tts"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="10dp"
@@ -132,9 +128,9 @@
             android:id="@+id/btn_tts"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toLeftOf="@+id/btn_copy"
             android:layout_toStartOf="@+id/btn_copy"
             android:layout_below="@+id/trad_sentence"
+            android:layout_alignParentBottom="true"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="10dp"
             android:src="@drawable/ic_volume_up_black_24dp"
@@ -147,8 +143,9 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:paddingEnd="50dp"
+            android:paddingVertical="24dp"
             android:paddingStart="50dp"
+            android:paddingEnd="50dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_volume_up_black_48dp"
             app:tint="@color/lighter_gray"
@@ -161,6 +158,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="10dp"
             android:scaleType="fitCenter"
+            android:layout_alignParentBottom="true"
             android:src="@drawable/ic_copy"
             android:layout_below="@+id/trad_sentence"
             android:layout_alignParentEnd="true"
