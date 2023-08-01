@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -214,7 +215,8 @@
                 android:foreground="?attr/selectableItemBackground"
                 android:padding="10dp"
                 android:src="@drawable/ic_report_black_24dp"
-                android:tint="@color/lighter_gray" />
+                app:tint="@color/lighter_gray"
+                android:contentDescription="@string/report_error" />
 
             <ImageButton
                 android:id="@+id/btn_tts"
@@ -226,7 +228,8 @@
                 android:foreground="?attr/selectableItemBackground"
                 android:padding="10dp"
                 android:src="@drawable/ic_volume_up_black_24dp"
-                android:tint="@color/lighter_gray" />
+                app:tint="@color/lighter_gray"
+                android:contentDescription="@string/word_audio" />
 
             <ImageButton
                 android:id="@+id/btn_copy"
@@ -238,7 +241,8 @@
                 android:padding="10dp"
                 android:scaleType="fitCenter"
                 android:src="@drawable/ic_copy"
-                android:tint="@color/lighter_gray" />
+                app:tint="@color/lighter_gray"
+                android:contentDescription="@string/copy_to_clipboard" />
 
         </RelativeLayout>
 
