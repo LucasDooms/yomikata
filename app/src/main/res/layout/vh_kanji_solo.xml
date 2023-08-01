@@ -171,4 +171,5 @@
         android:textColor="@color/lighter_gray"
         android:textSize="12sp"
         tools:text="traduction" />
+
 </RelativeLayout>

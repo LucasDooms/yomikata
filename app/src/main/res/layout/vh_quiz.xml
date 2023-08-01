@@ -51,4 +51,5 @@
             app:buttonTint="@color/lighter_gray"/>
 
     </RelativeLayout>
+
 </androidx.cardview.widget.CardView>
