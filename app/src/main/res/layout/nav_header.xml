@@ -89,9 +89,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="30dp"
         android:padding="10dp"
         android:text="@string/yomiakataz_drawer"
-        android:textColor="@color/gray"/>
+        android:textColor="@color/gray"
+        android:textSize="16sp" />
 
 </developer.shivam.crescento.CrescentoContainer>
