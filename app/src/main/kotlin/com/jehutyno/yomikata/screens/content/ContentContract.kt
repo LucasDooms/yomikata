@@ -6,6 +6,7 @@ import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.presenters.SelectionsInterface
 import com.jehutyno.yomikata.presenters.WordCountInterface
 import com.jehutyno.yomikata.presenters.WordInQuizInterface
+import com.jehutyno.yomikata.util.Category
 
 
 /**
@@ -20,6 +21,7 @@ interface ContentContract {
 
     interface Presenter: BasePresenter, SelectionsInterface, WordCountInterface, WordInQuizInterface {
         val words: LiveData<List<Word>>
+        suspend fun launchQuizStat(category: Category)
     }
 
 }

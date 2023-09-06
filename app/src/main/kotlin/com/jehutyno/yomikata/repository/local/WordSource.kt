@@ -6,6 +6,7 @@ import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.repository.WordRepository
 import com.jehutyno.yomikata.repository.database.RoomQuizWord
 import com.jehutyno.yomikata.repository.database.RoomWords
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.HiraganaUtils
 import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.QuizType
@@ -66,12 +67,12 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         }
     }
 
-    override suspend fun getWordsByRepetition(quizIds: LongArray, repetition: Int, limit: Int): ArrayList<Word> {
-        return wordDao.getWordsByRepetition(quizIds, repetition, limit).map { it.toWord() } as ArrayList<Word>
+    override suspend fun getWordsByRepetition(wordIds: LongArray, repetition: Int, limit: Int): ArrayList<Word> {
+        return wordDao.getWordsByRepetition(wordIds, repetition, limit).map { it.toWord() } as ArrayList<Word>
     }
 
-    override suspend fun getWordsByMinRepetition(quizIds: LongArray, minRepetition: Int, limit: Int): ArrayList<Word> {
-        return wordDao.getWordsByMinRepetition(quizIds, minRepetition, limit).map { it.toWord() } as ArrayList<Word>
+    override suspend fun getWordsByMinRepetition(wordIds: LongArray, minRepetition: Int, limit: Int): ArrayList<Word> {
+        return wordDao.getWordsByMinRepetition(wordIds, minRepetition, limit).map { it.toWord() } as ArrayList<Word>
     }
 
     override suspend fun getRandomWords(
@@ -145,6 +146,12 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         return wordDao.getWordById(wordId)!!.toWord()
     }
 
+    override fun getWordsByIds(wordIds: LongArray): Flow<List<Word>> {
+        return wordDao.getWordsByIds(wordIds).map { lst ->
+            lst.map { it.toWord() }
+        }
+    }
+
     override suspend fun deleteAllWords() {
         wordDao.deleteAllWords()
     }
@@ -167,9 +174,8 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         wordDao.updateWordRepetition(wordId, repetition)
     }
 
-    override suspend fun decreaseWordsRepetition(quizIds: LongArray) {
-        val idList = wordDao.getWordIdsWithRepetitionStrictlyGreaterThan(quizIds, 0)
-        wordDao.decreaseWordRepetitionByOne(idList)
+    override suspend fun decreaseWordsRepetition(wordIds: LongArray) {
+        wordDao.decreaseWordsRepetition(wordIds)
     }
 
     override suspend fun updateWord(updateWord: Word, word: Word?) {
@@ -181,7 +187,6 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
                 updateWord.french,
                 updateWord.reading,
                 word.level,
-                word.countTry,
                 word.countSuccess,
                 word.countFail,
                 word.isKana,
@@ -195,8 +200,8 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         } else {
             val newWord = Word(
                 0, updateWord.japanese, updateWord.english, updateWord.french,
-                updateWord.reading, Level.LOW, 0, 0, 0,
-                0, 0, 0, 0, 0, 0
+                updateWord.reading, Level.LOW, 0, 0,
+                0, 0, 0, Category.HOME, 0, 0
             )
             wordDao.updateWord(RoomWords.from(newWord))
         }
@@ -210,7 +215,6 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
             word.french,
             word.reading,
             updateWord.level,
-            updateWord.countTry,
             updateWord.countSuccess,
             updateWord.countFail,
             word.isKana,
@@ -223,16 +227,16 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         wordDao.updateWord(RoomWords.from(newWord))
     }
 
-    override suspend fun updateWordSelected(wordId: Long, check: Boolean) {
-        wordDao.updateWordSelected(wordId, check)
-    }
-
-    override suspend fun updateWordsSelected(wordIds: LongArray, check: Boolean) {
-        wordDao.updateWordsSelected(wordIds, check)
-    }
-
     override suspend fun addQuizWord(quizId: Long, wordId: Long) {
         wordDao.addQuizWord(RoomQuizWord(quizId, wordId))
+    }
+
+    override suspend fun incrementFail(wordId: Long) {
+        wordDao.incrementFail(wordId)
+    }
+
+    override suspend fun incrementSuccess(wordId: Long) {
+        wordDao.incrementSuccess(wordId)
     }
 
 }

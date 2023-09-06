@@ -15,6 +15,7 @@ import com.jehutyno.yomikata.model.Radical
 import com.jehutyno.yomikata.model.Sentence
 import com.jehutyno.yomikata.model.StatEntry
 import com.jehutyno.yomikata.model.Word
+import com.jehutyno.yomikata.util.toCategory
 import com.jehutyno.yomikata.util.toLevel
 
 
@@ -28,12 +29,12 @@ data class RoomQuiz (
 ) {
     companion object {
         fun from(quiz: Quiz): RoomQuiz {
-            return RoomQuiz(quiz.id, quiz.nameEn, quiz.nameFr, quiz.category, quiz.isSelected)
+            return RoomQuiz(quiz.id, quiz.nameEn, quiz.nameFr, quiz.category.index, quiz.isSelected)
         }
     }
 
     fun toQuiz(): Quiz {
-        return Quiz(_id, name_en, name_fr, category, isSelected)
+        return Quiz(_id, name_en, name_fr, category.toCategory(), isSelected)
     }
 }
 
@@ -54,7 +55,6 @@ data class RoomWords (
     @ColumnInfo val french: String,
     @ColumnInfo val reading: String,
     @ColumnInfo(defaultValue = "0") val level: Int,
-    @ColumnInfo(defaultValue = "0") val count_try: Int,
     @ColumnInfo(defaultValue = "0") val count_success: Int,
     @ColumnInfo(defaultValue = "0") val count_fail: Int,
     @ColumnInfo val is_kana: Int,      // 0 = kanji, 1 = normal hiragana/katakana,
@@ -62,22 +62,21 @@ data class RoomWords (
     @ColumnInfo(defaultValue = "-1") val repetition: Int,
     @ColumnInfo(defaultValue = "0") val points: Int,
     @ColumnInfo val base_category: Int,
-    @ColumnInfo(defaultValue = "0") val isSelected: Int,
     @ColumnInfo(index = true) val sentence_id: Long?
 ) {
     companion object {
         fun from(word: Word): RoomWords {
             return RoomWords(word.id, word.japanese, word.english, word.french,
-                             word.reading, word.level.level, word.countTry, word.countSuccess,
+                             word.reading, word.level.level, word.countSuccess,
                              word.countFail, word.isKana, word.repetition, word.points,
-                             word.baseCategory, word.isSelected, word.sentenceId)
+                             word.baseCategory.index, word.sentenceId)
         }
     }
 
     fun toWord(): Word {
         return Word(
-            _id, japanese, english, french, reading, level.toLevel(), count_try, count_success,
-            count_fail, is_kana, repetition, points, base_category, isSelected, sentence_id
+            _id, japanese, english, french, reading, level.toLevel(), count_success,
+            count_fail, is_kana, repetition, points, base_category.toCategory(), 0, sentence_id
         )
     }
 }

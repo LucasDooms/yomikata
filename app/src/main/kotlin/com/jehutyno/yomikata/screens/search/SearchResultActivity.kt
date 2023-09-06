@@ -1,5 +1,6 @@
 package com.jehutyno.yomikata.screens.search
 
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.view.MenuItem
@@ -7,8 +8,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.PreferenceManager
 import com.jehutyno.yomikata.R
+import com.jehutyno.yomikata.YomikataZKApplication
 import com.jehutyno.yomikata.util.Prefs
 import com.jehutyno.yomikata.util.addOrReplaceFragment
+import io.github.inflationx.viewpump.ViewPumpContextWrapper
 import org.kodein.di.DIAware
 import org.kodein.di.android.di
 
@@ -19,6 +22,11 @@ class SearchResultActivity : AppCompatActivity(), DIAware {
     override val di by di()
 
     private lateinit var searchResultFragment : SearchResultFragment
+
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase, YomikataZKApplication.viewPump))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

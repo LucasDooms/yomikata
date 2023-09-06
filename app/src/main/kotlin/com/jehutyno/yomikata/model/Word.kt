@@ -5,11 +5,12 @@ import android.os.Parcel
 import android.os.Parcelable
 import androidx.core.content.ContextCompat
 import com.jehutyno.yomikata.R
-import com.jehutyno.yomikata.util.Categories
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.getLevelFromPoints
 import com.jehutyno.yomikata.util.getProgressToNextLevel
 import com.jehutyno.yomikata.util.readableTranslationFormat
+import com.jehutyno.yomikata.util.toCategory
 import com.jehutyno.yomikata.util.toLevel
 import java.io.Serializable
 import java.util.*
@@ -18,15 +19,15 @@ import java.util.*
 /**
  * Created by valentin on 26/09/2016.
  */
-open class Word(var id: Long, var japanese: String, var english: String, var french: String,
-                var reading: String, var level: Level, var countTry: Int, var countSuccess: Int,
+data class Word(var id: Long, var japanese: String, var english: String, var french: String,
+                var reading: String, var level: Level, var countSuccess: Int,
                 var countFail: Int, var isKana: Int, var repetition: Int, var points: Int,
-                var baseCategory: Int, var isSelected: Int, var sentenceId: Long?) : Parcelable, Serializable {
+                var baseCategory: Category, var isSelected: Int, var sentenceId: Long?) : Parcelable, Serializable {
 
     constructor(source: Parcel): this(source.readLong(), source.readString()!!,
         source.readString()!!, source.readString()!!, source.readString()!!, source.readInt().toLevel(),
-        source.readInt(), source.readInt(), source.readInt(), source.readInt(), source.readInt(),
-        source.readInt(), source.readInt(), source.readInt(), source.readLong().takeIf { it != -1L } )
+        source.readInt(), source.readInt(), source.readInt(), source.readInt(),
+        source.readInt(), source.readInt().toCategory(), source.readInt(), source.readLong().takeIf { it != -1L } )
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeLong(id)
@@ -35,13 +36,12 @@ open class Word(var id: Long, var japanese: String, var english: String, var fre
         dest.writeString(french)
         dest.writeString(reading)
         dest.writeInt(level.level)
-        dest.writeInt(countTry)
         dest.writeInt(countSuccess)
         dest.writeInt(countFail)
         dest.writeInt(isKana)
         dest.writeInt(repetition)
         dest.writeInt(points)
-        dest.writeInt(baseCategory)
+        dest.writeInt(baseCategory.index)
         dest.writeInt(isSelected)
         dest.writeLong(sentenceId ?: -1L)   // write as -1 if null
     }
@@ -71,19 +71,6 @@ open class Word(var id: Long, var japanese: String, var english: String, var fre
     }
 }
 
-fun getCategoryIcon(category: Int): Int {
-    return when (category) {
-        Categories.CATEGORY_HIRAGANA -> R.drawable.ic_hiragana
-        Categories.CATEGORY_KATAKANA -> R.drawable.ic_katakana
-        Categories.CATEGORY_COUNTERS -> R.drawable.ic_counters
-        Categories.CATEGORY_JLPT_1   -> R.drawable.ic_jlpt1
-        Categories.CATEGORY_JLPT_2   -> R.drawable.ic_jlpt2
-        Categories.CATEGORY_JLPT_3   -> R.drawable.ic_jlpt3
-        Categories.CATEGORY_JLPT_4   -> R.drawable.ic_jlpt4
-        Categories.CATEGORY_JLPT_5   -> R.drawable.ic_jlpt5
-        else                         -> R.drawable.ic_kanji
-    }
-}
 
 fun getWordColor(context: Context, points: Int): Int {
     val level = getLevelFromPoints(points)

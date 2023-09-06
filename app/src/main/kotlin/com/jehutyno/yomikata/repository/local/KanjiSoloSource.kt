@@ -46,4 +46,10 @@ class KanjiSoloSource(private val kanjiSoloDao: KanjiSoloDao) : KanjiSoloReposit
         return roomRadical?.toRadical()
     }
 
+    override suspend fun getSoloByKanjiRadical(wordIds: LongArray): Map<Long, List<KanjiSoloRadical>> {
+        return kanjiSoloDao.getSoloByKanjiRadical(wordIds).mapValues {
+            lst -> lst.value.map { it.toKanjiSoloRadical() }
+        }
+    }
+
 }

@@ -5,6 +5,7 @@ import androidx.multidex.MultiDexApplication
 import androidx.preference.PreferenceManager
 import com.facebook.stetho.Stetho
 import com.jehutyno.yomikata.dao.daoModule
+import com.jehutyno.yomikata.managers.voicesManagerModule
 import com.jehutyno.yomikata.presenters.source.presenterModule
 import com.jehutyno.yomikata.repository.database.databaseModule
 import com.jehutyno.yomikata.repository.local.repositoryModule
@@ -24,6 +25,14 @@ class YomikataZKApplication : MultiDexApplication(), DIAware {
 
     companion object {
         const val APP_PNAME = "com.jehutyno.yomikata"
+
+        val viewPump = ViewPump.builder().addInterceptor(
+            CalligraphyInterceptor(
+                CalligraphyConfig.Builder()
+                    .setDefaultFontPath("fonts/Roboto-Regular.ttf")
+                    .build()
+            )
+        ).build()
     }
 
     override val di: DI by DI.lazy {
@@ -32,6 +41,7 @@ class YomikataZKApplication : MultiDexApplication(), DIAware {
         import(daoModule())
         import(repositoryModule())
         import(presenterModule())
+        import(voicesManagerModule())
     }
 
     override fun onCreate() {
@@ -42,13 +52,5 @@ class YomikataZKApplication : MultiDexApplication(), DIAware {
         val nightModePref = PreferenceManager.getDefaultSharedPreferences(this)
         val mode = nightModePref.getInt(Prefs.DAY_NIGHT_MODE.pref, AppCompatDelegate.MODE_NIGHT_YES)
         AppCompatDelegate.setDefaultNightMode(mode)
-
-        ViewPump.init(ViewPump.builder()
-                .addInterceptor(CalligraphyInterceptor(
-                        CalligraphyConfig.Builder()
-                                .setDefaultFontPath("fonts/Roboto-RobotoRegular.ttf")
-                                .build()))
-                .build())
     }
-
 }

@@ -13,6 +13,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.jehutyno.yomikata.R
+import com.jehutyno.yomikata.YomikataZKApplication
+import com.jehutyno.yomikata.repository.WordRepository
 import com.jehutyno.yomikata.util.Extras
 import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.Prefs
@@ -24,11 +26,14 @@ import com.jehutyno.yomikata.util.getParcelableArrayListHelper
 import com.jehutyno.yomikata.util.getSerializableExtraHelper
 import com.jehutyno.yomikata.util.getSerializableHelper
 import io.github.inflationx.viewpump.ViewPumpContextWrapper
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import mu.KLogging
 import org.kodein.di.DI
 import org.kodein.di.DIAware
 import org.kodein.di.android.di
 import org.kodein.di.bind
+import org.kodein.di.direct
 import org.kodein.di.factory
 import org.kodein.di.instance
 import splitties.alertdialog.appcompat.alertDialog
@@ -49,7 +54,7 @@ class QuizActivity : AppCompatActivity(), DIAware {
             view: QuizContract.View ->
             QuizPresenter (
                 instance(), instance(), instance(), instance(), view,
-                quizIds, quizStrategy, level, quizTypes,
+                wordIds, quizStrategy, quizTypes,
                 instance(arg = lifecycleScope), instance(), lifecycleScope
             )
         }
@@ -57,13 +62,14 @@ class QuizActivity : AppCompatActivity(), DIAware {
 
     private lateinit var quizFragment: QuizFragment
 
-    private lateinit var quizIds: LongArray
+    private lateinit var wordIds: LongArray
     private lateinit var quizStrategy: QuizStrategy
     private var level: Level? = null
     private lateinit var quizTypes: ArrayList<QuizType>
 
+
     override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase))
+        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase, YomikataZKApplication.viewPump))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,14 +91,23 @@ class QuizActivity : AppCompatActivity(), DIAware {
         if (savedInstanceState != null) {
             //Restore the fragment's instance
             quizFragment = supportFragmentManager.getFragment(savedInstanceState, "quizFragment") as QuizFragment
-            quizIds = savedInstanceState.getLongArray("quiz_ids")?: longArrayOf()
+            wordIds = savedInstanceState.getLongArray("word_ids")?: longArrayOf()
 
             quizStrategy = savedInstanceState.getSerializableHelper("quiz_strategy", QuizStrategy::class.java)!!
             level = savedInstanceState.getSerializableHelper("level", Level::class.java)
 
             quizTypes = savedInstanceState.getParcelableArrayListHelper("quiz_types", QuizType::class.java)?: arrayListOf()
         } else {
-            quizIds = intent.getLongArrayExtra(Extras.EXTRA_QUIZ_IDS) ?: longArrayOf()
+            wordIds = intent.getLongArrayExtra(Extras.EXTRA_WORD_IDS) ?: longArrayOf()
+
+            // wordIds is empty, check if quizIds was set, and retrieve the corresponding words
+            if (wordIds.isEmpty()) {
+                val quizIds = intent.getLongArrayExtra(Extras.EXTRA_QUIZ_IDS) ?: longArrayOf()
+                runBlocking {
+                    wordIds = di.direct.instance<WordRepository>().getWords(quizIds).first()
+                        .map{ it.id }.toLongArray()
+                }
+            }
 
             quizStrategy = intent.getSerializableExtraHelper(Extras.EXTRA_QUIZ_STRATEGY, QuizStrategy::class.java)!!
 
@@ -101,7 +116,7 @@ class QuizActivity : AppCompatActivity(), DIAware {
             quizTypes = intent.getParcelableArrayListExtraHelper(Extras.EXTRA_QUIZ_TYPES, QuizType::class.java) ?: arrayListOf()
 
             val bundle = Bundle()
-            bundle.putLongArray(Extras.EXTRA_QUIZ_IDS, quizIds)
+            bundle.putLongArray(Extras.EXTRA_WORD_IDS, wordIds)
             bundle.putSerializable(Extras.EXTRA_QUIZ_STRATEGY, quizStrategy)
             bundle.putParcelableArrayList(Extras.EXTRA_QUIZ_TYPES, quizTypes)
 
@@ -142,7 +157,7 @@ class QuizActivity : AppCompatActivity(), DIAware {
 
         //Save the fragment's instance
         supportFragmentManager.putFragment(outState, "quizFragment", quizFragment)
-        outState.putLongArray("quiz_ids", quizIds)
+        outState.putLongArray("word_ids", wordIds)
         outState.putSerializable("quiz_strategy", quizStrategy)
         outState.putSerializable("level", level)
         outState.putParcelableArrayList("quiz_types", quizTypes)

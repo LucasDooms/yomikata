@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -20,7 +21,8 @@
             android:padding="4dp"
             android:background="@drawable/circle_answer"
             android:layout_margin="8dp"
-            android:src="@drawable/ic_jlpt5"/>
+            android:src="@drawable/ic_jlpt5"
+            android:contentDescription="@string/japanese_word" />
 
         <com.jehutyno.yomikata.furigana.FuriganaView
             android:id="@+id/japanese"
@@ -36,45 +38,30 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/japanese_container"
-        android:layout_marginLeft="60dp"
         android:layout_marginStart="60dp"
+        android:paddingVertical="8dp"
         android:textColor="@color/lighter_gray"
         android:textSize="20sp"
         tools:text="Japan" />
 
-    <LinearLayout
-        android:id="@+id/container_answer"
+    <TextView
+        android:id="@+id/answer"
+        android:layout_below="@+id/translation"
+        android:layout_marginStart="68dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/translation"
-        android:layout_marginLeft="60dp"
-        android:layout_marginStart="60dp"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:padding="8dp"
-            android:src="@drawable/ic_tooltip_edit"
-            android:tint="@color/level_low_1" />
-
-        <TextView
-            android:id="@+id/answer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:textColor="@color/level_low_1"
-            tools:text="にほん" />
-
-    </LinearLayout>
+        android:layout_gravity="center"
+        android:textColor="@color/level_low_1"
+        android:drawablePadding="8dp"
+        tools:text="にほん"
+        app:drawableLeftCompat="@drawable/ic_tooltip_edit"
+        app:drawableTint="@color/level_low_1" />
 
     <LinearLayout
         android:id="@+id/container_sentence_jap"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/container_answer"
-        android:layout_marginLeft="60dp"
+        android:layout_below="@+id/answer"
         android:layout_marginStart="60dp"
         android:orientation="horizontal">
 
@@ -84,7 +71,8 @@
             android:layout_gravity="center"
             android:padding="8dp"
             android:src="@drawable/ic_sentence_jap"
-            android:tint="@color/lighter_gray" />
+            app:tint="@color/lighter_gray"
+            android:contentDescription="@string/japanese_sentence" />
 
         <com.jehutyno.yomikata.furigana.FuriganaView
             android:id="@+id/sentence_jap"
@@ -101,43 +89,31 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:src="@drawable/ic_volume_circled" />
+            android:minWidth="32dp"
+            android:minHeight="32dp"
+            android:src="@drawable/ic_volume_circled"
+            android:contentDescription="@string/sentence_audio" />
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/container_sentence_tanslation"
+    <TextView
+        android:id="@+id/sentence_translation"
+        android:layout_below="@+id/container_sentence_jap"
+        android:layout_marginStart="68dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/container_sentence_jap"
-        android:layout_marginLeft="60dp"
-        android:layout_marginStart="60dp"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:padding="8dp"
-            android:src="@drawable/ic_sentence_en"
-            android:tint="@color/lighter_gray" />
-
-        <TextView
-            android:id="@+id/sentence_translation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:textColor="@color/lighter_gray"
-            tools:text="I want to go to japan" />
-
-    </LinearLayout>
+        android:layout_gravity="center"
+        android:textColor="@color/lighter_gray"
+        android:drawablePadding="8dp"
+        tools:text="I want to go to japan"
+        app:drawableLeftCompat="@drawable/ic_sentence_en"
+        app:drawableTint="@color/lighter_gray" />
 
     <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/container_sentence_tanslation"
-        android:layout_toLeftOf="@+id/btn_report"
+        android:layout_below="@+id/sentence_translation"
         android:layout_toStartOf="@+id/btn_report">
 
         <ImageButton
@@ -145,10 +121,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
             android:background="@color/transparent"
             android:foreground="?attr/selectableItemBackground"
             android:padding="10dp"
-            android:src="@drawable/ic_star_black_24dp" />
+            android:src="@drawable/ic_star_black_24dp"
+            android:contentDescription="@string/selections" />
 
     </FrameLayout>
 
@@ -157,14 +136,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_below="@+id/container_sentence_tanslation"
-        android:layout_toLeftOf="@+id/btn_tts"
+        android:layout_below="@+id/sentence_translation"
         android:layout_toStartOf="@+id/btn_tts"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
         android:background="@color/transparent"
         android:foreground="?attr/selectableItemBackground"
         android:padding="10dp"
         android:src="@drawable/ic_report_black_24dp"
-        android:tint="@color/lighter_gray" />
+        app:tint="@color/lighter_gray"
+        android:contentDescription="@string/report_error" />
 
     <ImageButton
         android:id="@+id/btn_tts"
@@ -172,13 +153,15 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/container_sentence_tanslation"
+        android:layout_below="@+id/sentence_translation"
+        android:minWidth="48dp"
+        android:minHeight="48dp"
         android:background="@color/transparent"
         android:foreground="?attr/selectableItemBackground"
         android:padding="10dp"
         android:src="@drawable/ic_volume_up_black_24dp"
-        android:tint="@color/lighter_gray" />
+        app:tint="@color/lighter_gray"
+        android:contentDescription="@string/word_audio" />
 
     <View
         android:layout_width="match_parent"

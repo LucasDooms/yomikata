@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.VhAnswerBinding
 import com.jehutyno.yomikata.model.*
+import com.jehutyno.yomikata.util.getSmallIcon
 import com.jehutyno.yomikata.util.sentenceNoFuri
 
 /**
@@ -31,7 +32,7 @@ class AnswersAdapter(private val context: Context, private val callback: Callbac
         val answer = items[position].first
         val word = items[position].second
         val sentence = items[position].third
-        holder.answer_image.setImageResource(getCategoryIcon(word.baseCategory))
+        holder.answer_image.setImageResource(word.baseCategory.getSmallIcon())
 
         val color = ContextCompat.getColor(context, R.color.answer_icon_color)
         holder.answer_image.drawable?.colorFilter = BlendModeColorFilterCompat.createBlendModeColorFilterCompat(color, BlendModeCompat.SRC_ATOP)

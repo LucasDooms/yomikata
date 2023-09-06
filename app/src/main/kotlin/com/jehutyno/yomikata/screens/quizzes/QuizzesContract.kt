@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import com.jehutyno.yomikata.BasePresenter
 import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.presenters.WordCountInterface
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.QuizStrategy
 import com.jehutyno.yomikata.util.QuizType
@@ -31,7 +32,7 @@ interface QuizzesContract {
         suspend fun updateQuizCheck(id: Long, checked: Boolean)
         fun initQuizTypes()
         fun quizTypeSwitch(quizType: QuizType)
-        suspend fun onLaunchQuizClick(category: Int)
+        suspend fun onLaunchQuizClick(category: Category)
         fun getSelectedTypes(): ArrayList<QuizType>
     }
 }

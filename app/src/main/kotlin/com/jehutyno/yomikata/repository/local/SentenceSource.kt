@@ -23,6 +23,10 @@ class SentenceSource(private val sentenceDao: SentenceDao) : SentenceRepository 
         return sentenceDao.getSentenceById(id)!!.toSentence()
     }
 
+    override suspend fun getSentencesByIds(ids: LongArray): List<Sentence> {
+        return sentenceDao.getSentencesByIds(ids).map{ it.toSentence() }
+    }
+
     override suspend fun getAllSentences(): List<Sentence> {
         return sentenceDao.getAllSentences().map { it.toSentence() }
     }

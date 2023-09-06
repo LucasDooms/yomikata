@@ -20,16 +20,17 @@ interface WordRepository {
     suspend fun updateWordLevel(wordId: Long, level: Level)
     suspend fun getRandomWords(wordId: Long, answer: String, wordSize: Int, limit: Int, quizType: QuizType): ArrayList<Word>
     suspend fun updateWordPoints(wordId: Long, points: Int)
-    suspend fun getWordsByRepetition(quizIds: LongArray, repetition: Int, limit: Int): ArrayList<Word>
-    suspend fun getWordsByMinRepetition(quizIds: LongArray, minRepetition: Int, limit: Int): ArrayList<Word>
+    suspend fun getWordsByRepetition(wordIds: LongArray, repetition: Int, limit: Int): ArrayList<Word>
+    suspend fun getWordsByMinRepetition(wordIds: LongArray, minRepetition: Int, limit: Int): ArrayList<Word>
     suspend fun updateWordRepetition(wordId: Long, repetition: Int)
-    suspend fun decreaseWordsRepetition(quizIds: LongArray)
-    suspend fun updateWordSelected(wordId: Long, check: Boolean)
-    suspend fun updateWordsSelected(wordIds: LongArray, check: Boolean)
+    suspend fun decreaseWordsRepetition(wordIds: LongArray)
     fun getWordsByLevel(quizIds: LongArray, level: Level?): Flow<List<Word>>
     suspend fun getAllWords() : List<Word>
     suspend fun getWordById(wordId: Long): Word
+    fun getWordsByIds(wordIds: LongArray): Flow<List<Word>>
     suspend fun updateWord(updateWord: Word, word: Word?)
     suspend fun updateWordProgression(updateWord: Word, word: Word)
     suspend fun addQuizWord(quizId: Long, wordId: Long)
+    suspend fun incrementFail(wordId: Long)
+    suspend fun incrementSuccess(wordId: Long)
 }

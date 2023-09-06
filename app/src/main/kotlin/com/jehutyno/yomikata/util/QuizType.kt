@@ -30,7 +30,7 @@ enum class QuizType(val type: Int, val extraPoints: Int): Parcelable {
     }
 
     companion object {
-        @Suppress("unused")
+        @Suppress("UNUSED")
         @JvmField val CREATOR: Parcelable.Creator<QuizType> = object : Parcelable.Creator<QuizType> {
             override fun createFromParcel(source: Parcel): QuizType {
                 return QuizType.values()[source.readInt()]

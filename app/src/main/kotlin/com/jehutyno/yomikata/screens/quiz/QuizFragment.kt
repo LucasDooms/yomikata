@@ -1,11 +1,8 @@
 package com.jehutyno.yomikata.screens.quiz
 
 import android.animation.Animator
-import android.animation.ArgbEvaluator
-import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
-import android.media.AudioManager
 import android.os.Bundle
 import android.os.Parcelable
 import android.speech.tts.TextToSpeech
@@ -13,30 +10,58 @@ import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
 import android.text.method.ScrollingMovementMethod
-import android.view.*
+import android.view.KeyEvent
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
-import android.widget.*
+import android.widget.ImageButton
+import android.widget.PopupMenu
+import android.widget.SeekBar
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
-import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.widget.ViewPager2
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.FragmentQuizBinding
-import com.jehutyno.yomikata.furigana.FuriganaView
 import com.jehutyno.yomikata.managers.VoicesManager
-import com.jehutyno.yomikata.model.*
+import com.jehutyno.yomikata.model.Answer
+import com.jehutyno.yomikata.model.Sentence
+import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.screens.answers.AnswersActivity
-import com.jehutyno.yomikata.screens.content.word.WordDetailDialogFragment
-import com.jehutyno.yomikata.util.*
-import com.jehutyno.yomikata.view.SwipeDirection
+import com.jehutyno.yomikata.screens.word.WordDetailDialogFragment
+import com.jehutyno.yomikata.util.Extras
+import com.jehutyno.yomikata.util.LocalPersistence
+import com.jehutyno.yomikata.util.Prefs
+import com.jehutyno.yomikata.util.QuizType
+import com.jehutyno.yomikata.util.SpeechAvailability
+import com.jehutyno.yomikata.util.cleanForQCM
+import com.jehutyno.yomikata.util.createNewSelectionDialog
+import com.jehutyno.yomikata.util.getLevel
+import com.jehutyno.yomikata.util.hideSoftKeyboard
+import com.jehutyno.yomikata.util.reportError
+import com.jehutyno.yomikata.util.speechNotSupportedAlert
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.kodein.di.*
-import splitties.alertdialog.appcompat.*
+import org.kodein.di.DI
+import org.kodein.di.DITrigger
+import org.kodein.di.bind
+import org.kodein.di.instance
+import org.kodein.di.on
+import splitties.alertdialog.appcompat.alertDialog
+import splitties.alertdialog.appcompat.message
+import splitties.alertdialog.appcompat.messageResource
+import splitties.alertdialog.appcompat.negativeButton
+import splitties.alertdialog.appcompat.neutralButton
+import splitties.alertdialog.appcompat.okButton
+import splitties.alertdialog.appcompat.positiveButton
 
 
 /**
@@ -45,20 +70,16 @@ import splitties.alertdialog.appcompat.*
 class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItemPagerAdapter.Callback, TextToSpeech.OnInitListener {
 
     // kodein
-    private val subDI = DI.lazy {
+    private val subDI by DI.lazy {
         extend(di)
-        bind<VoicesManager>() with singleton { VoicesManager(requireActivity()) }
+        bind<Context>(overrides = true) with instance(requireContext())
     }
-    @Suppress("unused")
-    private val voicesManager: VoicesManager by subDI.instance()
-    private val presenter: QuizContract.Presenter by subDI.instance(arg = this@QuizFragment)
+    private val voicesManagerTrigger = DITrigger()
+    private val voicesManager: VoicesManager by subDI.on(trigger = voicesManagerTrigger).instance(arg = this)
+    private val presenter: QuizContract.Presenter by subDI.instance(arg = this)
 
     private var adapter: QuizItemPagerAdapter? = null
-    private var tts: TextToSpeech? = null
-    private var ttsSupported = SPEECH_NOT_INITALIZED
     private var currentEditColor: Int = R.color.lighter_gray
-    private lateinit var errorsMenu: MenuItem
-    private lateinit var ttsSettingsMenu: MenuItem
     private var holdOn = false
     private var isSettingsOpen = false
 
@@ -79,24 +100,22 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
     }
 
     override fun onInit(status: Int) {
-        ttsSupported = onTTSinit(activity, status, tts)
-        presenter.setTTSSupported(ttsSupported)
+        // play the first word once initialization has completed
         if (adapter != null && adapter!!.words.isNotEmpty()) {
             val pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
             val noPlayStart = pref.getBoolean("play_start", false)
             if (adapter!!.words[binding.pager.currentItem].second == QuizType.TYPE_AUDIO || noPlayStart) {
-                voicesManager.speakWord(adapter!!.words[binding.pager.currentItem].first, ttsSupported, tts)
+                voicesManager.speakWord(adapter!!.words[binding.pager.currentItem].first, false)
             }
         }
     }
 
-    override fun speakWord(word: Word) {
-        if (ttsSupported != SPEECH_NOT_INITALIZED)
-            voicesManager.speakWord(word, ttsSupported, tts)
+    override fun speakWord(word: Word, userAction: Boolean) {
+        voicesManager.speakWord(word, userAction)
     }
 
-    override fun launchSpeakSentence(sentence: Sentence) {
-        voicesManager.speakSentence(sentence, ttsSupported, tts)
+    override fun launchSpeakSentence(sentence: Sentence, userAction: Boolean) {
+        voicesManager.speakSentence(sentence, userAction)
     }
 
     /**
@@ -132,7 +151,6 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        tts = TextToSpeech(activity, this)
 
         initUI()
 
@@ -148,10 +166,13 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
         }
     }
 
+    override fun onAttach(context: Context) {
+        voicesManagerTrigger.trigger()
+        super.onAttach(context)
+    }
+
     override fun onDestroy() {
-        tts?.stop()
-        tts?.shutdown()
-        voicesManager.releasePlayer()
+        voicesManager.destroy()
         super.onDestroy()
     }
 
@@ -162,57 +183,13 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
 
     override fun onPause() {
         super.onPause()
+        voicesManager.stop()
         requireActivity().hideSoftKeyboard()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_quiz, menu)
         super.onCreateOptionsMenu(menu, inflater)
-        this.errorsMenu = menu.findItem(R.id.errors)
-        if (context != null) {
-            val errorsImage = ImageView(context)
-            errorsImage.setImageResource(R.drawable.ic_tooltip_edit)
-            val pad = DimensionHelper.getPixelFromDip(activity, 12)
-            errorsImage.setPadding(pad, pad, pad, pad)
-            errorsImage.setOnClickListener {
-                presenter.onDisplayAnswersClick()
-            }
-            this.errorsMenu.actionView = errorsImage
-        }
-        this.ttsSettingsMenu = menu.findItem(R.id.tts_settings)
-
-        if (context != null) {
-            val ttsErrorsImage = ImageView(context)
-            ttsErrorsImage.setImageResource(R.drawable.ic_tts_settings)
-            val pad = DimensionHelper.getPixelFromDip(activity, 12)
-            ttsErrorsImage.setPadding(pad, pad, pad, pad)
-            ttsErrorsImage.setOnClickListener {
-                val category = adapter!!.words[binding.pager.currentItem].first.baseCategory
-                when (val speechAvailability = checkSpeechAvailability(requireActivity(), ttsSupported, getCategoryLevel(category))) {
-                    SpeechAvailability.NOT_AVAILABLE -> {
-                        speechNotSupportedAlert(requireActivity(), getCategoryLevel(category)) {}
-                    }
-                    else -> {
-                        if (isSettingsOpen) {
-                            closeTTSSettings()
-                        } else {
-                            if (speechAvailability == SpeechAvailability.VOICES_AVAILABLE) {
-                                binding.settingsSpeed.visibility = GONE
-                                binding.seekSpeed.visibility = GONE
-                            } else {
-                                binding.settingsSpeed.visibility = VISIBLE
-                                binding.seekSpeed.visibility = VISIBLE
-                            }
-                            binding.settingsContainer.animate().setDuration(300).translationY(0f).withStartAction {
-                                binding.settingsContainer.visibility = VISIBLE
-                                isSettingsOpen = true
-                            }.start()
-                        }
-                    }
-                }
-            }
-            this.ttsSettingsMenu.actionView = ttsErrorsImage
-        }
     }
 
     /**
@@ -229,15 +206,8 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
     private fun initPager() {
         adapter = QuizItemPagerAdapter(requireContext(), this)
         binding.pager.adapter = adapter
-        binding.pager.setAllowedSwipeDirection(SwipeDirection.none)
-        binding.pager.offscreenPageLimit = 0
-        binding.pager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
-            override fun onPageScrollStateChanged(state: Int) {
-            }
-
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-            }
-
+        binding.pager.isUserInputEnabled = false
+        binding.pager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 editBinding.hiraganaEdit.isEnableConversion = adapter!!.words[position].first.isKana == 0
                 holdOn = false
@@ -298,42 +268,61 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
     }
 
     private fun setUpAudioManager() {
-        val audioManager = requireActivity().getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        binding.seekVolume.max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        binding.seekVolume.progress = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+        val pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
+
+        // VOLUME
+        binding.seekVolume.max = 100
+        val defaultVolume = 100
+        val volume = pref.getInt(Prefs.SPEECH_VOLUME.pref, defaultVolume)
+        binding.seekVolume.progress = volume
+        voicesManager.setVolume(volume.toFloat() / binding.seekVolume.max)
         binding.seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, p1, 0)
-                presenter.onSpeakSentence()
+                pref.edit().putInt(Prefs.SPEECH_VOLUME.pref, p1).apply()
+                voicesManager.setVolume(p1.toFloat() / binding.seekVolume.max)
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {
             }
 
             override fun onStopTrackingTouch(p0: SeekBar?) {
+                presenter.onSpeakSentence(true)
             }
 
         })
 
-        binding.seekSpeed.max = 250
-        val pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        val rate = pref.getInt(Prefs.TTS_RATE.pref, 50)
+        binding.resetVolume.setOnClickListener {
+            binding.seekVolume.progress = defaultVolume
+            voicesManager.setVolume(defaultVolume.toFloat() / binding.seekVolume.max)
+        }
+
+        // SPEECH RATE
+        binding.seekSpeed.max = 150
+        val defaultRate = 50
+        val rate = pref.getInt(Prefs.TTS_RATE.pref, defaultRate)
         binding.seekSpeed.progress = rate
-        tts?.setSpeechRate((rate + 50).toFloat() / 100)
+        val rateConvert = { _rate: Int -> (_rate + 50).toFloat() / 100 }
+        voicesManager.setSpeechRate(rateConvert(rate))
         binding.seekSpeed.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, p1: Int, p2: Boolean) {
                 pref.edit().putInt(Prefs.TTS_RATE.pref, p1).apply()
-                tts?.setSpeechRate((p1 + 50).toFloat() / 100)
-                presenter.onSpeakSentence()
+                voicesManager.setSpeechRate(rateConvert(p1))
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {
             }
 
             override fun onStopTrackingTouch(p0: SeekBar?) {
+                presenter.onSpeakSentence(true)
             }
 
         })
+
+        binding.resetSpeed.setOnClickListener {
+            binding.seekSpeed.progress = defaultRate
+            voicesManager.setSpeechRate(rateConvert(defaultRate))
+        }
+
         binding.settingsContainer.translationY = -400f
         binding.settingsClose.setOnClickListener {
             closeTTSSettings()
@@ -408,9 +397,9 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
         binding.pager.currentItem = position
     }
 
-    override fun setSentence(sentence: Sentence) {
-        adapter!!.replaceSentence(sentence)
-        adapter!!.notifyDataSetChanged()
+    override fun setSentence(position: Int, sentence: Sentence) {
+        adapter!!.sentence = sentence
+        adapter!!.notifyItemChanged(position)
     }
 
     override fun setEditTextColor(color: Int) {
@@ -605,49 +594,8 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
     }
 
     override fun animateColor(position: Int, word: Word, sentence: Sentence, quizType: QuizType, fromPoints: Int, toPoints: Int) {
-        val view = binding.pager.findViewWithTag<View>("pos_$position")
-        val btnFuri = view.findViewById<View>(R.id.btn_furi)
-        val furiSentence = view.findViewById<FuriganaView>(R.id.furi_sentence)
-        val tradSentence = view.findViewById<TextView>(R.id.trad_sentence)
-        val sound = view.findViewById<ImageButton>(R.id.sound)
-        val sentenceNoFuri = sentenceNoFuri(sentence)
-        val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(),
-            getWordColor(requireContext(), fromPoints),
-            getWordColor(requireContext(), toPoints))
-        colorAnimation.addUpdateListener {
-            animator ->
-            run {
-                when (quizType) {
-                    QuizType.TYPE_PRONUNCIATION, QuizType.TYPE_PRONUNCIATION_QCM, QuizType.TYPE_JAP_EN -> {
-                        val colorEntireWord = word.isKana == 2 && quizType == QuizType.TYPE_JAP_EN
-                        val wordTruePosition = if (colorEntireWord) 0 else getWordPositionInFuriSentence(sentence.jap, word)
-                        if (btnFuri.isSelected) {
-                            if (!colorEntireWord) wordTruePosition.let {
-                                furiSentence.text_set(
-                                    sentenceNoAnswerFuri(sentence, word), it,
-                             wordTruePosition + word.japanese.length,
-                                    animator.animatedValue as Int)
-                            }
-                        } else {
-                            furiSentence.text_set(
-                                if (colorEntireWord) sentence.jap else sentenceNoFuri.replace("%", word.japanese),
-                                (if (colorEntireWord) 0 else wordTruePosition),
-                                if (colorEntireWord) sentence.jap.length else wordTruePosition + word.japanese.length,
-                                animator.animatedValue as Int)
-                        }
-                    }
-                    QuizType.TYPE_EN_JAP -> {
-                        tradSentence.setTextColor(animator.animatedValue as Int)
-                    }
-                    QuizType.TYPE_AUDIO -> {
-                        sound.setColorFilter(animator.animatedValue as Int)
-                    }
-                    else -> {
-                    }
-                }
-            }
-        }
-        colorAnimation.start()
+        adapter!!.setAnimation(fromPoints, toPoints, quizType)
+        adapter!!.notifyItemChanged(position, QuizItemPagerAdapter.PlayAnimation())
     }
 
     override fun showAlertProgressiveSessionEnd(proposeErrors: Boolean) {
@@ -764,21 +712,14 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
             }
             R.id.tts_settings -> {
                 val category = adapter!!.words[binding.pager.currentItem].first.baseCategory
-                when (val speechAvailability = checkSpeechAvailability(requireActivity(), ttsSupported, getCategoryLevel(category))) {
+                when (voicesManager.getSpeechAvailability(category.getLevel())) {
                     SpeechAvailability.NOT_AVAILABLE -> {
-                        speechNotSupportedAlert(requireActivity(), getCategoryLevel(category)) {}
+                        speechNotSupportedAlert(requireActivity(), category.getLevel()) {}
                     }
                     else -> {
                         if (isSettingsOpen) {
                             closeTTSSettings()
                         } else {
-                            if (speechAvailability == SpeechAvailability.VOICES_AVAILABLE) {
-                                binding.settingsSpeed.visibility = GONE
-                                binding.seekSpeed.visibility = GONE
-                            } else {
-                                binding.settingsSpeed.visibility = VISIBLE
-                                binding.seekSpeed.visibility = VISIBLE
-                            }
                             binding.settingsContainer.animate().setDuration(300).translationY(0f).withStartAction {
                                 binding.settingsContainer.visibility = VISIBLE
                                 isSettingsOpen = true
@@ -805,7 +746,7 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
     }
 
     override fun onSoundClick(button: ImageButton, position: Int) {
-        presenter.onSpeakWordTTS()
+        presenter.onSpeakWordTTS(true)
     }
 
     override fun onSelectionClick(view: View, position: Int) = runBlocking {
@@ -817,7 +758,7 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
             popup.menu.add(1, i, i, selection.getName()).isChecked = presenter.isWordInQuiz(word.id, selection.id)
             popup.menu.setGroupCheckable(1, true, false)
         }
-        popup.setOnMenuItemClickListener { it -> runBlocking {
+        popup.setOnMenuItemClickListener { runBlocking {
             when (it.itemId) {
                 R.id.add_selection -> addSelection(word.id)
                 else -> {
@@ -847,7 +788,7 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
     }
 
     override fun onSentenceTTSClick(position: Int) {
-        presenter.onSpeakSentence()
+        presenter.onSpeakSentence(true)
     }
 
     override fun onTradClick(position: Int) {

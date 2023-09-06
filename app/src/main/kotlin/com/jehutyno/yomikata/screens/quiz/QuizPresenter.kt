@@ -3,7 +3,6 @@ package com.jehutyno.yomikata.screens.quiz
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.speech.tts.TextToSpeech
 import android.util.Log
 import androidx.preference.PreferenceManager
 import com.jehutyno.yomikata.R
@@ -25,6 +24,7 @@ import com.jehutyno.yomikata.util.QuizType
 import com.jehutyno.yomikata.util.addPoints
 import com.jehutyno.yomikata.util.cleanForQCM
 import com.jehutyno.yomikata.util.getCategoryLevel
+import com.jehutyno.yomikata.util.getLevel
 import com.jehutyno.yomikata.util.getLevelFromPoints
 import com.jehutyno.yomikata.util.getParcelableArrayListHelper
 import com.jehutyno.yomikata.util.getParcelableHelper
@@ -47,8 +47,8 @@ class QuizPresenter(
     val context: Context,
     private val wordRepository: WordRepository,
     private val sentenceRepository: SentenceRepository, private val statsRepository: StatsRepository,
-    private val quizView: QuizContract.View, private val quizIds: LongArray,
-    private val strategy: QuizStrategy, level: Level?,
+    private val quizView: QuizContract.View, private val wordIds: LongArray,
+    private val strategy: QuizStrategy,
     private val quizTypes: ArrayList<QuizType>,
     selectionsInterface: SelectionsInterface,
     wordInQuizInterface: WordInQuizInterface,
@@ -131,7 +131,6 @@ class QuizPresenter(
     /** Session length of choice in user preferences */
     private val prefSessionLength = defaultSharedPreferences.getString("length", "10")!!.toInt()
 
-    private var ttsSupported = TextToSpeech.LANG_NOT_SUPPORTED
     private var isFuriDisplayed = false
     private var previousAnswerWrong = false  // true if and only if wrong choice in the current word
     /** True if all of the words have run out (must be false if [strategy] = PROGRESSIVE) */
@@ -142,7 +141,7 @@ class QuizPresenter(
 
     init {
         wordsFlowJob = coroutineScope.launch {
-            words = wordRepository.getWordsByLevel(quizIds, level).stateIn(coroutineScope)
+            words = wordRepository.getWordsByIds(wordIds).stateIn(coroutineScope)
         }
         isFuriDisplayed = defaultSharedPreferences.getBoolean(Prefs.FURI_DISPLAYED.pref, true)
     }
@@ -278,7 +277,7 @@ class QuizPresenter(
         quizView.setPagerPosition(wordHandler.getActiveIndex())
 
         currentSentence = getRandomSentence(word)
-        quizView.setSentence(currentSentence)
+        quizView.setSentence(wordHandler.getActiveIndex(), currentSentence)
 
         when (quizType) {
             QuizType.TYPE_PRONUNCIATION -> {
@@ -288,7 +287,7 @@ class QuizPresenter(
                 quizView.displayEditMode()
                 // TTS at start
                 if (defaultSharedPreferences.getBoolean("play_start", false))
-                    quizView.speakWord(word)
+                    quizView.speakWord(word, false)
             }
             QuizType.TYPE_PRONUNCIATION_QCM -> {
                 // Keyboard
@@ -299,7 +298,7 @@ class QuizPresenter(
                                             context.getString(R.string.give_romaji_hint))
                 // TTS at start
                 if (defaultSharedPreferences.getBoolean("play_start", false))
-                    quizView.speakWord(word)
+                    quizView.speakWord(word, false)
                 // QCM options
                 randoms = generateQCMRandoms(word, quizType, word.reading)
                 setupQCMPronunciationQuiz()
@@ -309,7 +308,7 @@ class QuizPresenter(
                 quizView.hideKeyboard()
                 quizView.displayQCMMode(context.getString(R.string.give_word_or_kanji_hint))
                 // TTS at start
-                quizView.speakWord(word)
+                quizView.speakWord(word, false)
                 // QCM options
                 randoms = generateQCMRandoms(word, quizType, word.japanese)
                 setupQCMQAudioQuiz()
@@ -320,7 +319,7 @@ class QuizPresenter(
                 quizView.displayQCMMode(context.getString(R.string.translate_to_japanese_hint))
                 // TTS at stat
                 if (defaultSharedPreferences.getBoolean("play_start", false))
-                    quizView.speakWord(word)
+                    quizView.speakWord(word, false)
                 // QCM options
                 randoms = generateQCMRandoms(word, quizType, word.japanese)
                 setupQCMEnJapQuiz()
@@ -331,7 +330,7 @@ class QuizPresenter(
                 quizView.displayQCMMode(context.getString(R.string.translate_to_english_hint))
                 // TTS at start
                 if (defaultSharedPreferences.getBoolean("play_start", false))
-                    quizView.speakWord(word)
+                    quizView.speakWord(word, false)
                 // QCM Options
                 randoms = generateQCMRandoms(word, quizType, word.japanese)
                 setupQCMJapEnQuiz()
@@ -443,8 +442,8 @@ class QuizPresenter(
         // add more more difficult quiz types depending on level
         if (word.level >= Level.MEDIUM) {
             autoTypes.add(QuizType.TYPE_EN_JAP)
-            if (ttsSupported != TextToSpeech.LANG_MISSING_DATA && ttsSupported != TextToSpeech.LANG_NOT_SUPPORTED)
-                autoTypes.add(QuizType.TYPE_AUDIO)
+            // TODO: check if any voice method is available, don't add if nothing is available
+            autoTypes.add(QuizType.TYPE_AUDIO)
         }
         if (word.level >= Level.HIGH) {
             autoTypes.add(QuizType.TYPE_PRONUNCIATION)
@@ -461,12 +460,12 @@ class QuizPresenter(
         quizView.openAnswersScreen(answers)
     }
 
-    override fun onSpeakWordTTS() {
-        quizView.speakWord(wordHandler.getCurrentWord())
+    override fun onSpeakWordTTS(userAction: Boolean) {
+        quizView.speakWord(wordHandler.getCurrentWord(), userAction)
     }
 
-    override fun onSpeakSentence() {
-        quizView.launchSpeakSentence(currentSentence)
+    override fun onSpeakSentence(userAction: Boolean) {
+        quizView.launchSpeakSentence(currentSentence, userAction)
     }
 
     private suspend fun onAnswerGiven(choice: Int) {
@@ -545,7 +544,7 @@ class QuizPresenter(
         }
 
         if (result && defaultSharedPreferences.getBoolean("play_end", true))
-            quizView.speakWord(wordHandler.getCurrentWord())
+            quizView.speakWord(wordHandler.getCurrentWord(), false)
 
         quizView.animateCheck(result)
 
@@ -598,7 +597,9 @@ class QuizPresenter(
     /**
      * Update repetition and points
      *
-     * Updates the word's points, level, repetition in the database and in memory.
+     * Updates the word's points, level, repetition, count_fail, count_success
+     * in the database and in memory.
+     *
      * Also animates the color change caused by the change in points.
      *
      * Does nothing if previousAnswerWrong.
@@ -622,12 +623,20 @@ class QuizPresenter(
         updateWordPoints(word.id, newPoints)
         updateWordLevel(word.id, newLevel)
         updateRepetitions(word.id, newRepetition)
+        if (result)
+            wordRepository.incrementSuccess(word.id)
+        else
+            wordRepository.incrementFail(word.id)
 
         quizView.animateColor(wordHandler.getActiveIndex(), word, currentSentence, quizType, word.points, newPoints)
 
         // update in-memory word
         word.level = newLevel
         word.points = newPoints
+        if (result)
+            word.countSuccess++
+        else
+            word.countFail++
     }
 
     private fun addCurrentWordToAnswers(answer: String) {
@@ -765,14 +774,14 @@ class QuizPresenter(
      */
     override suspend fun getNextProgressiveWords(): List<Pair<Word, QuizType>> {
         // first get words that need to be reviewed (rep = 0)
-        val words = wordRepository.getWordsByRepetition(quizIds, 0, prefSessionLength)
+        val words = wordRepository.getWordsByRepetition(wordIds, 0, prefSessionLength)
         // if session length not reached yet, get completely new words (rep = -1)
         if (words.size < prefSessionLength || (words.size == 0 && prefSessionLength == -1)) {
-            words.addAll(wordRepository.getWordsByRepetition(quizIds, -1, prefSessionLength - words.size))
+            words.addAll(wordRepository.getWordsByRepetition(wordIds, -1, prefSessionLength - words.size))
         }
         // fill up to session length with other words (rep >= 1)
         if (words.size < prefSessionLength || (words.size == 0 && prefSessionLength == -1)) {
-            words.addAll(wordRepository.getWordsByMinRepetition(quizIds, 1, prefSessionLength - words.size))
+            words.addAll(wordRepository.getWordsByMinRepetition(wordIds, 1, prefSessionLength - words.size))
         }
         if (prefSessionLength == -1) {
             if (words.isNotEmpty()) {
@@ -799,7 +808,7 @@ class QuizPresenter(
      * @return A random sentence containing the Word.
      */
     override suspend fun getRandomSentence(word: Word): Sentence {
-        val sentence = sentenceRepository.getRandomSentence(word, getCategoryLevel(word.baseCategory))
+        val sentence = sentenceRepository.getRandomSentence(word, word.baseCategory.getLevel())
         return if (word.isKana == 2 || sentence == null)
             sentenceRepository.getSentenceById(word.sentenceId!!)
         else
@@ -811,7 +820,7 @@ class QuizPresenter(
     }
 
     override suspend fun decreaseAllRepetitions() {
-        wordRepository.decreaseWordsRepetition(quizIds)
+        wordRepository.decreaseWordsRepetition(wordIds)
     }
 
     override suspend fun saveAnswerResultStat(word: Word, result: Boolean) {
@@ -822,10 +831,6 @@ class QuizPresenter(
     override suspend fun saveWordSeenStat(word: Word) {
         statsRepository.addStatEntry(StatAction.WORD_SEEN, word.id,
             Calendar.getInstance().timeInMillis, StatResult.OTHER)
-    }
-
-    override fun setTTSSupported(ttsSupported: Int) {
-        this.ttsSupported = ttsSupported
     }
 
     override fun getTTSForCurrentItem(): String {

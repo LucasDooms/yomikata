@@ -1,4 +1,4 @@
-package com.jehutyno.yomikata.screens.content
+package com.jehutyno.yomikata.screens.word
 
 import android.content.Context
 import android.view.LayoutInflater
@@ -12,17 +12,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.VhWordShortBinding
 import com.jehutyno.yomikata.model.Word
-import com.jehutyno.yomikata.model.getCategoryIcon
 import com.jehutyno.yomikata.model.getWordColor
+import com.jehutyno.yomikata.util.getSmallIcon
+import com.jehutyno.yomikata.util.toBool
+import com.jehutyno.yomikata.util.toInt
 
 
 /**
  * Created by valentin on 04/10/2016.
  */
-class WordsAdapter(private val context: Context, private val callback: Callback) : RecyclerView.Adapter<WordsAdapter.ViewHolder>() {
+class WordsAdapter(private val context: Context, private val callback: Callback)
+    : RecyclerView.Adapter<WordsAdapter.ViewHolder>() {
 
     var items: MutableList<Word> = arrayListOf()
-    var flag = false
 
     var checkMode = false
 
@@ -32,18 +34,34 @@ class WordsAdapter(private val context: Context, private val callback: Callback)
         return ViewHolder(binding)
     }
 
+    class ChecksChanged(val selections: List<Boolean>)
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.isEmpty()) {
+            super.onBindViewHolder(holder, position, payloads)
+        } else {
+            val checks = payloads.filterIsInstance<ChecksChanged>()
+            // if there are multiple ChecksChanged payloads, only the last one matters
+            if (checks.isNotEmpty()) {
+                checks.last().selections.getOrNull(position)?.also {
+                    holder.checkBox.isChecked = it
+                }
+            }
+        }
+    }
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val word = items[position]
         holder.wordName.text = word.japanese
         holder.wordName.setTextColor(getWordColor(context, word.points))
-        holder.categoryIcon.setImageResource(getCategoryIcon(word.baseCategory))
+        holder.categoryIcon.setImageResource(word.baseCategory.getSmallIcon())
 
         val color = ContextCompat.getColor(context, R.color.content_icon_color)
         holder.categoryIcon.drawable?.colorFilter = BlendModeColorFilterCompat.createBlendModeColorFilterCompat(color, BlendModeCompat.SRC_ATOP)
 
-        flag = true
-        holder.checkBox.isChecked = word.isSelected == 1
-        flag = false
+        // unset listener before changing isChecked to avoid weird behaviour
+        holder.checkBox.setOnCheckedChangeListener(null)
+        holder.checkBox.isChecked = word.isSelected.toBool()
 
         if (checkMode) {
             holder.categoryIcon.visibility = GONE
@@ -53,28 +71,21 @@ class WordsAdapter(private val context: Context, private val callback: Callback)
             holder.checkBox.visibility = GONE
         }
 
-        with(holder.itemView) {
-            setOnClickListener { callback.onItemClick(position) }
+        holder.itemView.setOnClickListener { callback.onItemClick(position) }
+
+        holder.checkBox.setOnCheckedChangeListener { _, isSelected ->
+            callback.onCheckChange(position, isSelected)
+            items[position].isSelected = isSelected.toInt()
         }
 
-        with(holder.categoryIcon) {
-            setOnClickListener {
+        holder.categoryIcon.setOnClickListener {
+            // make sure checkbox listener is set, so that this causes it to call!!
+            holder.checkBox.isChecked = true
+            callback.onCategoryIconClick(position)
+            if (!checkMode) {
                 checkMode = true
-                word.isSelected = 1
+                // notify all items changed, since checkMode affects all items
                 notifyItemRangeChanged(0, items.size)
-                callback.onCategoryIconClick(position)
-            }
-        }
-
-        with(holder.checkBox) {
-            setOnCheckedChangeListener { _, b ->
-                if (!flag) {
-                    run {
-                        callback.onCheckChange(position, b)
-                        items[position].isSelected = if (b) 1 else 0
-                        notifyItemChanged(position)
-                    }
-                }
             }
         }
     }
@@ -90,6 +101,12 @@ class WordsAdapter(private val context: Context, private val callback: Callback)
         notifyDataSetChanged()
     }
 
+    fun clearData() {
+        val size = items.size
+        items.clear()
+        notifyItemRangeRemoved(0, size)
+    }
+
     class ViewHolder(binding: VhWordShortBinding) : RecyclerView.ViewHolder(binding.root) {
         val wordName = binding.kanjiWord
         val categoryIcon = binding.categoryIcon
@@ -100,12 +117,6 @@ class WordsAdapter(private val context: Context, private val callback: Callback)
         fun onItemClick(position: Int)
         fun onCategoryIconClick(position: Int)
         fun onCheckChange(position: Int, check: Boolean)
-    }
-
-    fun clearData() {
-        val size = items.size
-        items.clear()
-        notifyItemRangeRemoved(0, size)
     }
 
 }

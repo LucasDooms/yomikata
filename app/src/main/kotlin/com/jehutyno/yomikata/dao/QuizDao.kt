@@ -3,6 +3,8 @@ package com.jehutyno.yomikata.dao
 import androidx.room.*
 import com.jehutyno.yomikata.repository.database.RoomQuiz
 import com.jehutyno.yomikata.repository.database.RoomQuizWord
+import com.jehutyno.yomikata.util.inBatches
+import com.jehutyno.yomikata.util.inBatchesWithFlowReturn
 import kotlinx.coroutines.flow.Flow
 
 
@@ -41,18 +43,53 @@ interface QuizDao {
     @Insert
     suspend fun addQuizWord(quiz_word: RoomQuizWord)
 
-    @Query("DELETE FROM quiz_word " +
-           "WHERE word_id = :wordId AND quiz_id = :quizId")
-    suspend fun deleteWordFromQuiz(wordId: Long, quizId: Long)
+    @Delete
+    suspend fun deleteWordFromQuiz(quiz_word: RoomQuizWord)
+
+    @Query("SELECT EXISTS ( " +
+            "SELECT * FROM quiz_word " +
+            "WHERE word_id = :wordId AND quiz_id = :quizId " +
+            ")")
+    suspend fun isWordInQuiz(wordId: Long, quizId: Long): Boolean
+
+    @Transaction
+    suspend fun addQuizWords(quiz_words: List<RoomQuizWord>) {
+        quiz_words.forEach { quiz_word ->
+            if (!isWordInQuiz(quiz_word.word_id, quiz_word.quiz_id))
+                addQuizWord(RoomQuizWord(quiz_word.quiz_id, quiz_word.word_id))
+        }
+    }
+
+    @Query("DELETE FROM quiz_word WHERE quiz_id = :quizId AND word_id IN (:wordIds)")
+    suspend fun deleteWordsFromQuizUnSafe(wordIds: LongArray, quizId: Long)
+
+    @Transaction
+    suspend fun deleteWordsFromQuiz(wordIds: LongArray, quizId: Long) {
+        wordIds.inBatches { smallerWordIds ->
+            deleteWordsFromQuizUnSafe(smallerWordIds, quizId)
+        }
+    }
 
     @Query("SELECT COUNT(*) FROM words JOIN quiz_word " +
            "ON quiz_word.word_id = words._id " +
            "AND quiz_word.quiz_id IN (:quizIds) " +
            "AND words.level = :level")
-    fun countWordsForLevel(quizIds: LongArray, level: Int): Flow<Int>
+    fun countWordsForLevelUnsafe(quizIds: LongArray, level: Int): Flow<Int>
+
+    fun countWordsForLevel(quizIds: LongArray, level: Int): Flow<Int> {
+        return quizIds.inBatchesWithFlowReturn { smallerQuizIds ->
+            countWordsForLevelUnsafe(smallerQuizIds, level)
+        }
+    }
 
     @Query("SELECT COUNT(*) FROM words JOIN quiz_word " +
            "ON quiz_word.word_id = words._id " +
            "AND quiz_word.quiz_id IN (:quizIds)")
-    fun countWordsForQuizzes(quizIds: LongArray): Flow<Int>
+    fun countWordsForQuizzesUnsafe(quizIds: LongArray): Flow<Int>
+
+    fun countWordsForQuizzes(quizIds: LongArray): Flow<Int> {
+        return quizIds.inBatchesWithFlowReturn { smallerQuizIds ->
+            countWordsForQuizzesUnsafe(smallerQuizIds)
+        }
+    }
 }

@@ -5,6 +5,7 @@ import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.repository.QuizRepository
 import com.jehutyno.yomikata.repository.database.RoomQuiz
 import com.jehutyno.yomikata.repository.database.RoomQuizWord
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.Level
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -15,8 +16,8 @@ import kotlinx.coroutines.flow.map
  */
 class QuizSource(private val quizDao: QuizDao) : QuizRepository {
 
-    override fun getQuiz(category: Int) : Flow<List<Quiz>> {
-        val roomQuizList = quizDao.getQuizzesOfCategory(category)
+    override fun getQuiz(category: Category) : Flow<List<Quiz>> {
+        val roomQuizList = quizDao.getQuizzesOfCategory(category.index)
         val quizList = roomQuizList.map { list ->
             list.map {
                 it.toQuiz()
@@ -30,7 +31,7 @@ class QuizSource(private val quizDao: QuizDao) : QuizRepository {
         return roomQuiz?.toQuiz()
     }
 
-    override suspend fun saveQuiz(quizName: String, category: Int): Long {
+    override suspend fun saveQuiz(quizName: String, category: Category): Long {
         val quiz = Quiz(0, quizName, quizName, category, false)
         val roomQuiz = RoomQuiz.from(quiz)
         return quizDao.addQuiz(roomQuiz)
@@ -59,7 +60,18 @@ class QuizSource(private val quizDao: QuizDao) : QuizRepository {
     }
 
     override suspend fun deleteWordFromQuiz(wordId: Long, quizId: Long) {
-        quizDao.deleteWordFromQuiz(wordId, quizId)
+        quizDao.deleteWordFromQuiz(RoomQuizWord(quizId, wordId))
+    }
+
+    override suspend fun addWordsToQuiz(wordIds: LongArray, quizId: Long) {
+        val quizWords = wordIds.map { wordId ->
+            RoomQuizWord(quizId, wordId)
+        }
+        quizDao.addQuizWords(quizWords)
+    }
+
+    override suspend fun deleteWordsFromQuiz(wordIds: LongArray, quizId: Long) {
+        quizDao.deleteWordsFromQuiz(wordIds, quizId)
     }
 
     override fun countWordsForLevel(quizIds: LongArray, level: Level): Flow<Int> {

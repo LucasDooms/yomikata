@@ -253,4 +253,43 @@
     <string name="give_word_or_kanji_hint">Give word or kanji</string>
     <string name="translate_to_japanese_hint">Translate to Japanese</string>
     <string name="translate_to_english_hint">Translate to English</string>
+    <string name="remove_x_words">Remove %d words?</string>
+    <string name="unknown_error">Something went wrong</string>
+    <string name="check_mark_description">correct</string>
+    <string name="reset_volume">reset volume</string>
+    <string name="reset_speech_rate">reset speech rate</string>
+    <string name="close">close</string>
+    <string name="yomikata_z_logo">Yomikata Z logo</string>
+    <string name="previous_word">Previous word</string>
+    <string name="next_word">Next word</string>
+    <string name="discord" translatable="false">discord</string>
+    <string name="google_play_store" translatable="false">google play store</string>
+    <string name="facebook" translatable="false">facebook</string>
+    <string name="most_recent_category">Most recent category</string>
+    <string name="second_most_recent_category">Second most recent category</string>
+    <string name="multiple_choice_reading">Multiple choice: reading</string>
+    <string name="multiple_choice_english_to_japanese">Multiple choice: English to Japanese</string>
+    <string name="multiple_choice_audio">Multiple choice: audio</string>
+    <string name="write_reading">Write reading</string>
+    <string name="automatically_choose_quiz_type">Automatically choose quiz type</string>
+    <string name="multiple_choice_japanese_to_english">Multiple choice: Japanese to English</string>
+    <string name="master_words">Master words</string>
+    <string name="high_words">High words</string>
+    <string name="medium_words">Medium words</string>
+    <string name="low_words">Low words</string>
+    <string name="reveal_correct_answer">Reveal correct answer</string>
+    <string name="japanese_word">Japanese word</string>
+    <string name="japanese_sentence">Japanese sentence</string>
+    <string name="sentence_audio">Sentence audio</string>
+    <string name="selections">Selections</string>
+    <string name="report_error">Report error</string>
+    <string name="word_audio">Word audio</string>
+    <string name="kun" translatable="false">Kun.</string>
+    <string name="on" translatable="false">On.</string>
+    <string name="show_furigana">Show furigana</string>
+    <string name="show_translation">Show translation</string>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
+    <string name="level_down">Level down</string>
+    <string name="level_up">Level up</string>
+    <string name="select">Select</string>
 </resources>
