@@ -1,61 +1,81 @@
 package com.jehutyno.yomikata.screens.search
 
 import android.os.Bundle
-import android.view.*
+import android.view.ActionMode
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.MenuItem
-import android.widget.EditText
-import android.widget.FrameLayout
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.widget.PopupMenu
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.FragmentContentBinding
-import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.model.Word
-import com.jehutyno.yomikata.screens.content.WordsAdapter
-import com.jehutyno.yomikata.screens.content.word.WordDetailDialogFragment
-import com.jehutyno.yomikata.util.DimensionHelper
+import com.jehutyno.yomikata.screens.word.WordDetailDialogFragment
+import com.jehutyno.yomikata.screens.word.WordsAdapter
 import com.jehutyno.yomikata.util.Extras
+import com.jehutyno.yomikata.view.WordSelectorActionModeCallback
 import org.kodein.di.DI
-import splitties.alertdialog.appcompat.*
-import java.util.*
+import org.kodein.di.bind
+import org.kodein.di.instance
+import org.kodein.di.provider
+
 
 /**
  * Created by valentin on 13/10/2016.
  */
 class SearchResultFragment(private val di: DI) : Fragment(), SearchResultContract.View, WordsAdapter.Callback {
-    private lateinit var searchResultPresenter : SearchResultContract.Presenter
     private lateinit var adapter: WordsAdapter
+    private lateinit var actionModeCallback: ActionMode.Callback
     private lateinit var layoutManager: LinearLayoutManager
     private var searchString = ""
-    private lateinit var selections: List<Quiz>
+
+    // kodein
+    private val subDI by DI.lazy {
+        extend(di)
+        bind<SearchResultContract.Presenter>() with provider {
+            SearchResultPresenter(instance(), instance(arg = lifecycleScope), instance())
+        }
+    }
+    private val searchResultPresenter : SearchResultContract.Presenter by subDI.instance()
 
     // View Binding
     private var _binding: FragmentContentBinding? = null
     private val binding get() = _binding!!
 
-
-    override fun setPresenter(presenter: SearchResultContract.Presenter) {
-        searchResultPresenter = presenter
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         adapter = WordsAdapter(requireActivity(), this)
+        actionModeCallback = WordSelectorActionModeCallback (
+            ::requireActivity, adapter, searchResultPresenter, null
+        )
         layoutManager = GridLayoutManager(context, 2)
 
         setHasOptionsMenu(true)
     }
 
+    override fun onStart() {
+        super.onStart()
+
+        searchResultPresenter.words.observe(viewLifecycleOwner) {
+            if (it.isEmpty()) {
+                displayNoResults()
+            } else {
+                displayResults(it)
+            }
+        }
+    }
 
     override fun onResume() {
         super.onResume()
         searchResultPresenter.start()
-        searchResultPresenter.loadSelections()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -89,7 +109,7 @@ class SearchResultFragment(private val di: DI) : Fragment(), SearchResultContrac
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 searchString = query.replace("'", " ").replace("\"", " ")
-                searchResultPresenter.loadWords(searchString)
+                searchResultPresenter.updateSearchString(searchString)
                 if (!searchView.isIconified) {
                     searchView.isIconified = true
                 }
@@ -140,134 +160,7 @@ class SearchResultFragment(private val di: DI) : Fragment(), SearchResultContrac
     }
 
     override fun onCheckChange(position: Int, check: Boolean) {
-        searchResultPresenter.updateWordCheck(adapter.items[position].id, check)
-    }
-
-    private val actionModeCallback = object : ActionMode.Callback {
-        override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean {
-            adapter.checkMode = true
-            adapter.notifyItemRangeChanged(0, adapter.items.size)
-            return false
-        }
-
-        private val ADD_TO_SELECTIONS = 1
-        private val REMOVE_FROM_SELECTIONS = 2
-        private val SELECT_ALL = 3
-        private val UNSELECT_ALL = 4
-
-        override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
-            when (item.itemId) {
-                ADD_TO_SELECTIONS -> {
-                    val popup = PopupMenu(activity!!, activity!!.findViewById(item.itemId))
-                    popup.menuInflater.inflate(R.menu.popup_selections, popup.menu)
-                    for ((i, selection) in selections.withIndex()) {
-                        popup.menu.add(1, i, i, selection.getName()).isChecked = false
-                    }
-                    popup.setOnMenuItemClickListener {it ->
-                        val selectedWords: ArrayList<Word> = arrayListOf()
-                        adapter.items.forEach { item -> if (item.isSelected == 1) selectedWords.add(item) }
-                        val selectionItemId = it.itemId
-                        when (it.itemId) {
-                            R.id.add_selection -> addSelection(selectedWords)
-                            else -> {
-                                selectedWords.forEach {
-                                    if (!searchResultPresenter.isWordInQuiz(it.id, selections[selectionItemId].id))
-                                        searchResultPresenter.addWordToSelection(it.id, selections[selectionItemId].id)
-                                }
-                                it.isChecked = !it.isChecked
-                            }
-                        }
-                        true
-                    }
-                    popup.show()
-                }
-                REMOVE_FROM_SELECTIONS -> {
-                    val popup = PopupMenu(activity!!, activity!!.findViewById(item.itemId))
-                    for ((i, selection) in selections.withIndex()) {
-                        popup.menu.add(1, i, i, selection.getName()).isChecked = false
-                    }
-                    popup.setOnMenuItemClickListener {it ->
-                        val selectedWords: ArrayList<Word> = arrayListOf()
-                        adapter.items.forEach { item -> if (item.isSelected == 1) selectedWords.add(item) }
-                        val selectionItemId = it.itemId
-                        when (it.itemId) {
-                            else -> {
-                                selectedWords.forEach {
-                                    if (searchResultPresenter.isWordInQuiz(it.id, selections[selectionItemId].id))
-                                        searchResultPresenter.deleteWordFromSelection(it.id, selections[selectionItemId].id)
-                                }
-                                it.isChecked = !it.isChecked
-                            }
-                        }
-                        true
-                    }
-                    popup.show()
-                }
-                SELECT_ALL -> {
-                    adapter.items.forEach { it.isSelected = 1 }
-                    adapter.notifyItemRangeChanged(0, adapter.items.size)
-                }
-                UNSELECT_ALL -> {
-                    adapter.items.forEach { it.isSelected = 0 }
-                    adapter.notifyItemRangeChanged(0, adapter.items.size)
-                }
-            }
-            return false
-        }
-
-        private fun addSelection(selectedWords: ArrayList<Word>) {
-            val input = EditText(activity)
-            input.setSingleLine()
-            input.hint = getString(R.string.selection_name)
-
-            val container = FrameLayout(requireActivity())
-            val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            params.leftMargin = DimensionHelper.getPixelFromDip(activity, 20)
-            params.rightMargin = DimensionHelper.getPixelFromDip(activity, 20)
-            input.layoutParams = params
-            container.addView(input)
-
-            requireContext().alertDialog {
-                titleResource = R.string.new_selection
-                setView(container)
-
-                okButton {
-                    val selectionId = searchResultPresenter.createSelection(input.text.toString())
-                    selectedWords.forEach {
-                        searchResultPresenter.addWordToSelection(it.id, selectionId)
-                    }
-                    searchResultPresenter.loadSelections()
-                }
-                cancelButton { }
-            }.show()
-        }
-
-
-        override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-            mode.title = null
-            menu.add(0, ADD_TO_SELECTIONS, 0, getString(R.string.add_to_selections)).setIcon(R.drawable.ic_selections_selected)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-            menu.add(0, REMOVE_FROM_SELECTIONS, 0, getString(R.string.remove_from_selection)).setIcon(R.drawable.ic_unselect)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-            menu.add(0, SELECT_ALL, 0, getString(R.string.select_all)).setIcon(R.drawable.ic_select_multiple)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-            menu.add(0, UNSELECT_ALL, 0, getString(R.string.unselect_all)).setIcon(R.drawable.ic_unselect_multiple)
-                .setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
-            return true
-        }
-
-        override fun onDestroyActionMode(mode: ActionMode?) {
-            adapter.checkMode = false
-            adapter.notifyItemRangeChanged(0, adapter.items.size)
-        }
-    }
-
-    override fun selectionLoaded(quizzes: List<Quiz>) {
-        selections = quizzes
-    }
-
-    override fun noSelections() {
-        selections = emptyList()
+        //
     }
 
     override fun onDestroyView() {

@@ -1,47 +1,38 @@
 package com.jehutyno.yomikata.screens.quizzes
 
+import androidx.lifecycle.LiveData
 import com.jehutyno.yomikata.BasePresenter
-import com.jehutyno.yomikata.BaseView
 import com.jehutyno.yomikata.model.Quiz
+import com.jehutyno.yomikata.presenters.WordCountInterface
+import com.jehutyno.yomikata.util.Category
+import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.QuizStrategy
+import com.jehutyno.yomikata.util.QuizType
+
 
 /**
  * Created by valentin on 27/09/2016.
  */
 interface QuizzesContract {
 
-    interface View : BaseView<Presenter> {
-        fun onMenuItemClick(category: Int)
+    interface View {
         fun displayQuizzes(quizzes: List<Quiz>)
         fun displayNoData()
-        fun selectPronunciationQcm(isSelected: Boolean)
-        fun selectPronunciation(isSelected: Boolean)
-        fun selectAudio(isSelected: Boolean)
-        fun selectEnJap(isSelected: Boolean)
-        fun selectJapEn(isSelected: Boolean)
-        fun selectAuto(isSelected: Boolean)
-        fun launchQuiz(strategy: QuizStrategy, selectedTypes: IntArray, title: String)
+        fun selectQuizType(quizType: QuizType, isSelected: Boolean)
+        fun launchQuiz(strategy: QuizStrategy, level: Level?, selectedTypes: ArrayList<QuizType>, title: String)
     }
 
-    interface Presenter : BasePresenter {
-        fun loadQuizzes(category: Int)
-        fun createQuiz(quizName: String)
-        fun updateQuizName(quizId: Long, quizName: String)
-        fun deleteQuiz(quizId: Long)
-        fun updateQuizCheck(id: Long, checked: Boolean)
-        fun countLow(ids: LongArray): Int
-        fun countQuiz(ids: LongArray): Int
-        fun countMedium(ids: LongArray): Int
-        fun countHigh(ids: LongArray): Int
-        fun countMaster(ids: LongArray): Int
+    interface Presenter : BasePresenter, WordCountInterface {
+        val quizList : LiveData<List<Quiz>>
+        val selectedTypes: LiveData<ArrayList<QuizType>>
+        suspend fun createQuiz(quizName: String)
+        suspend fun updateQuizName(quizId: Long, quizName: String)
+        suspend fun deleteQuiz(quizId: Long)
+        suspend fun countQuiz(ids: LongArray): Int
+        suspend fun updateQuizCheck(id: Long, checked: Boolean)
         fun initQuizTypes()
-        fun pronunciationQcmSwitch()
-        fun pronunciationSwitch()
-        fun audioSwitch()
-        fun enJapSwitch()
-        fun japEnSwitch()
-        fun autoSwitch()
-        fun launchQuizClick(strategy: QuizStrategy, title: String, category: Int)
-        fun getSelectedTypes(): IntArray
+        fun quizTypeSwitch(quizType: QuizType)
+        suspend fun onLaunchQuizClick(category: Category)
+        fun getSelectedTypes(): ArrayList<QuizType>
     }
 }

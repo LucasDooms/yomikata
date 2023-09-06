@@ -1,13 +1,13 @@
 package com.jehutyno.yomikata.screens.home
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -16,14 +16,20 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.FragmentHomeBinding
-import com.jehutyno.yomikata.model.StatAction
 import com.jehutyno.yomikata.model.StatEntry
-import com.jehutyno.yomikata.model.StatResult
 import com.jehutyno.yomikata.screens.quizzes.QuizzesActivity
-import com.jehutyno.yomikata.util.*
-import org.kodein.di.*
-
-import java.util.*
+import com.jehutyno.yomikata.util.Category
+import com.jehutyno.yomikata.util.Prefs
+import com.jehutyno.yomikata.util.contactDiscord
+import com.jehutyno.yomikata.util.contactFacebook
+import com.jehutyno.yomikata.util.contactPlayStore
+import com.jehutyno.yomikata.util.getBigIcon
+import com.jehutyno.yomikata.util.shareApp
+import com.jehutyno.yomikata.util.toCategory
+import org.kodein.di.DI
+import org.kodein.di.instance
+import org.kodein.di.newInstance
+import java.util.Locale
 
 
 /**
@@ -33,7 +39,7 @@ class HomeFragment(di: DI) : Fragment(), HomeContract.View {
 
     // kodein
     private val mpresenter: HomeContract.Presenter by di.newInstance {
-        HomePresenter(instance(), instance(), this@HomeFragment)
+        HomePresenter(instance())
     }
 
     private lateinit var newsRef: DatabaseReference
@@ -44,27 +50,21 @@ class HomeFragment(di: DI) : Fragment(), HomeContract.View {
     private val binding get() = _binding!!
 
 
-    override fun onMenuItemClick(category: Int) {
+    override fun onMenuItemClick(category: Category) {
 
-    }
-
-    override fun setPresenter(presenter: HomeContract.Presenter) {
-        // no need: see QuizzesFragment setPresenter for explanation
-//        mpresenter = presenter
     }
 
     override fun onStart() {
         // preload for viewPager2
         super.onStart()
         mpresenter.start()
-        mpresenter.loadAllStats()
+        subscribeStatsDisplay()
         displayLatestCategories()
     }
 
     override fun onResume() {
         super.onResume()
         mpresenter.start()
-        mpresenter.loadAllStats()
         displayLatestCategories()
     }
 
@@ -119,15 +119,35 @@ class HomeFragment(di: DI) : Fragment(), HomeContract.View {
     }
 
     private fun displayStat(stats: List<StatEntry>, vararg textViews: TextView) {
-        val quizLaunched = stats.count { it.action == StatAction.LAUNCH_QUIZ_FROM_CATEGORY.value }
-        val wordsSeen = stats.count { it.action == StatAction.WORD_SEEN.value }
-        val goodAnswer = stats.count { it.action == StatAction.ANSWER_QUESTION.value && it.result == StatResult.SUCCESS.value }
-        val wrongAnswer = stats.count { it.action == StatAction.ANSWER_QUESTION.value && it.result == StatResult.FAIL.value }
+        val quizLaunched = mpresenter.getNumberOfLaunchedQuizzes(stats)
+        val wordsSeen = mpresenter.getNumberOfWordsSeen(stats)
+        val correctAnswer = mpresenter.getNumberOfCorrectAnswers(stats)
+        val wrongAnswer = mpresenter.getNumberOfWrongAnswers(stats)
 
         textViews[0].text = getString(R.string.quiz_launched, quizLaunched)
         textViews[1].text = getString(R.string.words_seen, wordsSeen)
-        textViews[2].text = getString(R.string.good_answers, goodAnswer)
+        textViews[2].text = getString(R.string.good_answers, correctAnswer)
         textViews[3].text = getString(R.string.wrong_answers, wrongAnswer)
+    }
+
+    /**
+     * Subscribe stats display
+     *
+     * Set subscribers to automatically update stats when database changes
+     */
+    private fun subscribeStatsDisplay() {
+        mpresenter.todayStatList.observe(viewLifecycleOwner) { stats ->
+            displayTodayStats(stats)
+        }
+        mpresenter.thisWeekStatList.observe(viewLifecycleOwner) { stats ->
+            displayThisWeekStats(stats)
+        }
+        mpresenter.thisMonthStatList.observe(viewLifecycleOwner) { stats ->
+            displayThisMonthStats(stats)
+        }
+        mpresenter.totalStatList.observe(viewLifecycleOwner) { stats ->
+            displayTotalStats(stats)
+        }
     }
 
     private fun displayLatestCategories() {
@@ -137,9 +157,9 @@ class HomeFragment(di: DI) : Fragment(), HomeContract.View {
 
         if (cat1 != -1) {
             binding.lastCategory1.visibility = VISIBLE
-            binding.lastCategory1.setImageResource(getCategoryResId(cat1))
+            binding.lastCategory1.setImageResource(cat1.toCategory().getBigIcon())
             binding.lastCategory1.setOnClickListener {
-                (activity as QuizzesActivity).gotoCategory(cat1)
+                (activity as QuizzesActivity).gotoCategory(cat1.toCategory())
             }
         } else {
             binding.lastCategory1.visibility = GONE
@@ -147,9 +167,9 @@ class HomeFragment(di: DI) : Fragment(), HomeContract.View {
 
         if (cat2 != -1) {
             binding.lastCategory2.visibility = VISIBLE
-            binding.lastCategory2.setImageResource(getCategoryResId(cat2))
+            binding.lastCategory2.setImageResource(cat2.toCategory().getBigIcon())
             binding.lastCategory2.setOnClickListener {
-                (activity as QuizzesActivity).gotoCategory(cat2)
+                (activity as QuizzesActivity).gotoCategory(cat2.toCategory())
             }
         } else {
             binding.lastCategory2.visibility = GONE
@@ -157,40 +177,6 @@ class HomeFragment(di: DI) : Fragment(), HomeContract.View {
         binding.noCategories.visibility = if (cat1 == -1 && cat2 == -1) VISIBLE else GONE
     }
 
-    private fun getCategoryResId(category: Int): Int {
-        return when (category) {
-            Categories.CATEGORY_HIRAGANA -> {
-                R.drawable.ic_hiragana_big
-            }
-            Categories.CATEGORY_KATAKANA -> {
-                R.drawable.ic_katakana_big
-            }
-            Categories.CATEGORY_KANJI -> {
-                R.drawable.ic_kanji_big
-            }
-            Categories.CATEGORY_COUNTERS -> {
-                R.drawable.ic_counters_big
-            }
-            Categories.CATEGORY_JLPT_1 -> {
-                R.drawable.ic_jlpt1_big
-            }
-            Categories.CATEGORY_JLPT_2 -> {
-                R.drawable.ic_jlpt2_big
-            }
-            Categories.CATEGORY_JLPT_3 -> {
-                R.drawable.ic_jlpt3_big
-            }
-            Categories.CATEGORY_JLPT_4 -> {
-                R.drawable.ic_jlpt4_big
-            }
-            Categories.CATEGORY_JLPT_5 -> {
-                R.drawable.ic_jlpt5_big
-            }
-            else -> {
-                R.drawable.ic_selections_big
-            }
-        }
-    }
 
     override fun onDestroyView() {
         super.onDestroyView()

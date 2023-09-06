@@ -1,6 +1,14 @@
 package com.jehutyno.yomikata.dao
 
-import com.jehutyno.yomikata.repository.local.*
+import com.jehutyno.yomikata.repository.database.RoomKanjiSolo
+import com.jehutyno.yomikata.repository.database.RoomKanjiSoloRadical
+import com.jehutyno.yomikata.repository.database.RoomQuiz
+import com.jehutyno.yomikata.repository.database.RoomQuizWord
+import com.jehutyno.yomikata.repository.database.RoomRadicals
+import com.jehutyno.yomikata.repository.database.RoomSentences
+import com.jehutyno.yomikata.repository.database.RoomStatEntry
+import com.jehutyno.yomikata.repository.database.RoomWords
+import kotlinx.coroutines.runBlocking
 
 
 /**
@@ -40,11 +48,11 @@ val sampleRoomQuizWords = listOf (
 )
 
 val sampleRoomWords = listOf (
-    RoomWords(0, "", "", "", "", 0, 0, 0,
-          0, 0, 0, 0, 0, 0, null),
+    RoomWords(0, "", "", "", "", 0, 0,
+          0, 0, 0, 0, 0, null),
     RoomWords(0, "金", "metal; Friday", "métal; vendredi", "きん",
-             0, 0, 0, 0, 0, -1, 0,
-       2, 0, null)
+             0, 0, 0, 0, -1, 0,
+       2,null)
 )
 
 val sampleRoomSentences = listOf (
@@ -61,8 +69,8 @@ val sampleStatEntries = listOf (
 )
 
 fun getRandomRoomWord(wordId: Long): RoomWords {
-    return RoomWords(wordId, "", "", "", "", 0, 0, 0,
-        0, 0, 0, 0, 0, 0, null)
+    return RoomWords(wordId, "", "", "", "", 0, 0,
+        0, 0, 0, 0, 0, null)
 }
 
 fun getRandomRoomQuiz(quizId: Long): RoomQuiz {
@@ -79,11 +87,11 @@ class CoupledQuizWords(private val quizDao: QuizDao, private val wordDao: WordDa
     )
 
     private val sampleRoomWords = listOf (
-        RoomWords(1, "", "", "", "", 0, 0, 0,
-            0, 0, 0, 0, 0, 0, null),
+        RoomWords(1, "", "", "", "", 0, 0,
+            0, 0, 0, 0, 0, null),
         RoomWords(2, "金", "metal; Friday", "métal; vendredi", "きん",
-            0, 0, 0, 0, 0, -1, 0,
-            2, 0, null)
+            0, 0, 0, 0, -1, 0,
+            2, null)
     )
     private val sampleRoomQuizWords = listOf (
         RoomQuizWord(1, 1),
@@ -91,7 +99,7 @@ class CoupledQuizWords(private val quizDao: QuizDao, private val wordDao: WordDa
         RoomQuizWord(3, 2)
     )
 
-    fun addAllToDatabase() {
+    fun addAllToDatabase() = runBlocking {
         for (sample in sampleRoomQuiz) {
             quizDao.addQuiz(sample)
         }

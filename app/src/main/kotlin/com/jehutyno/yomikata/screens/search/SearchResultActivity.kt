@@ -1,15 +1,18 @@
 package com.jehutyno.yomikata.screens.search
 
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import android.view.MenuItem
 import androidx.preference.PreferenceManager
 import com.jehutyno.yomikata.R
+import com.jehutyno.yomikata.YomikataZKApplication
 import com.jehutyno.yomikata.util.Prefs
 import com.jehutyno.yomikata.util.addOrReplaceFragment
-import org.kodein.di.*
+import io.github.inflationx.viewpump.ViewPumpContextWrapper
+import org.kodein.di.DIAware
 import org.kodein.di.android.di
 
 
@@ -17,16 +20,13 @@ class SearchResultActivity : AppCompatActivity(), DIAware {
 
     // kodein
     override val di by di()
-    private val subDI by DI.lazy {
-        extend(di)
-        import(searchResultPresenterModule(searchResultFragment))
-        bind<SearchResultContract.Presenter>() with provider { SearchResultPresenter(instance(), instance(), instance())}
-    }
-    private val trigger = DITrigger()
-    @Suppress("unused")
-    private val searchResultPresenter: SearchResultContract.Presenter by subDI.on(trigger = trigger).instance()
 
     private lateinit var searchResultFragment : SearchResultFragment
+
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase, YomikataZKApplication.viewPump))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,10 +53,6 @@ class SearchResultActivity : AppCompatActivity(), DIAware {
             SearchResultFragment(di)
         }
         addOrReplaceFragment(R.id.container_content, searchResultFragment)
-
-        // searchResultFragment has been set so pull trigger for injection
-        trigger.trigger()
-
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

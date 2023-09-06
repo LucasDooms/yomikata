@@ -1,17 +1,20 @@
 package com.jehutyno.yomikata.screens.answers
 
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate 
-import androidx.appcompat.widget.Toolbar
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.Toolbar
 import androidx.preference.PreferenceManager
 import com.jehutyno.yomikata.R
+import com.jehutyno.yomikata.YomikataZKApplication
 import com.jehutyno.yomikata.util.Prefs
 import com.jehutyno.yomikata.util.addOrReplaceFragment
+import io.github.inflationx.viewpump.ViewPumpContextWrapper
 import mu.KLogging
-import org.kodein.di.*
+import org.kodein.di.DIAware
 import org.kodein.di.android.di
 
 
@@ -24,16 +27,13 @@ class AnswersActivity : AppCompatActivity(), DIAware {
 
     // kodein
     override val di by di()
-    private val subDI by DI.lazy {
-        extend(di)
-        import(answersPresenterModule(answersFragment))
-        bind<AnswersContract.Presenter>() with provider { AnswersPresenter(instance(), instance(), instance(), instance()) }
-    }
-    private val trigger = DITrigger()
-    @Suppress("UNUSED")
-    val answersPresenter: AnswersContract.Presenter by subDI.on(trigger = trigger).instance()
 
     private lateinit var answersFragment: AnswersFragment
+
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase, YomikataZKApplication.viewPump))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,10 +62,6 @@ class AnswersActivity : AppCompatActivity(), DIAware {
             AnswersFragment(di)
         }
         addOrReplaceFragment(R.id.container_content, answersFragment)
-
-        // answersFragment has been set, so pull trigger
-        trigger.trigger()
-
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

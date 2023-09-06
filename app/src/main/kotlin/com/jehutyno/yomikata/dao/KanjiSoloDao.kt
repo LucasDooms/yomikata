@@ -2,34 +2,37 @@ package com.jehutyno.yomikata.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.MapInfo
 import androidx.room.Query
-import com.jehutyno.yomikata.repository.local.RoomKanjiSolo
-import com.jehutyno.yomikata.repository.local.RoomKanjiSoloRadical
-import com.jehutyno.yomikata.repository.local.RoomRadicals
+import androidx.room.Transaction
+import com.jehutyno.yomikata.repository.database.RoomKanjiSolo
+import com.jehutyno.yomikata.repository.database.RoomKanjiSoloRadical
+import com.jehutyno.yomikata.repository.database.RoomRadicals
+import com.jehutyno.yomikata.util.inBatchesWithReturnMap
 
 
 @Dao
 interface KanjiSoloDao {
     @Query("SELECT * FROM kanji_solo")
-    fun getAllKanjiSolo(): List<RoomKanjiSolo>
+    suspend fun getAllKanjiSolo(): List<RoomKanjiSolo>
 
     @Query("SELECT * FROM radicals")
-    fun getAllRadicals(): List<RoomRadicals>
+    suspend fun getAllRadicals(): List<RoomRadicals>
 
     @Query("SELECT COUNT(*) FROM kanji_solo")
-    fun kanjiSoloCount(): Int
+    suspend fun kanjiSoloCount(): Int
 
     @Query("SELECT COUNT(*) FROM radicals")
-    fun radicalsCount(): Int
+    suspend fun radicalsCount(): Int
 
     @Insert
-    fun addKanjiSolo(kanjiSolo: RoomKanjiSolo)
+    suspend fun addKanjiSolo(kanjiSolo: RoomKanjiSolo)
 
     @Insert
-    fun addRadical(radical: RoomRadicals)
+    suspend fun addRadical(radical: RoomRadicals)
 
     @Query("SELECT * FROM kanji_solo WHERE kanji = :kanji LIMIT 1")
-    fun getSoloByKanji(kanji: String): RoomKanjiSolo?
+    suspend fun getSoloByKanji(kanji: String): RoomKanjiSolo?
 
     @Query("SELECT kanji_solo.*, " +
            "radicals.strokes AS radStroke, radicals.reading AS radReading, " +
@@ -38,8 +41,25 @@ interface KanjiSoloDao {
            "ON kanji_solo.radical = radicals.radical " +
            "WHERE kanji_solo.kanji = :kanji " +
            "LIMIT 1")
-    fun getSoloByKanjiRadical(kanji: String): RoomKanjiSoloRadical?
+    suspend fun getSoloByKanjiRadical(kanji: String): RoomKanjiSoloRadical?
+
+    @MapInfo(keyColumn = "_id", keyTable = "words")
+    @Query("SELECT words._id, kanji_solo.*, " +
+            "radicals.strokes AS radStroke, radicals.reading AS radReading, " +
+            "radicals.en AS radEn, radicals.fr AS radFr " +
+            "FROM words JOIN kanji_solo JOIN radicals " +
+            "ON words.japanese LIKE '%' || kanji_solo.kanji || '%' " +
+            "AND kanji_solo.radical = radicals.radical " +
+            "AND words._id IN (:wordIds)")
+    suspend fun getSoloByKanjiRadicalUnSafe(wordIds: LongArray): Map<Long, List<RoomKanjiSoloRadical>>
+
+    @Transaction
+    suspend fun getSoloByKanjiRadical(wordIds: LongArray): Map<Long, List<RoomKanjiSoloRadical>> {
+        return wordIds.inBatchesWithReturnMap { smallerWordIds ->
+            getSoloByKanjiRadicalUnSafe(smallerWordIds)
+        }
+    }
 
     @Query("SELECT * FROM radicals WHERE radical = :radicalString LIMIT 1")
-    fun getKanjiRadical(radicalString: String): RoomRadicals?
+    suspend fun getKanjiRadical(radicalString: String): RoomRadicals?
 }

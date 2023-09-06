@@ -4,10 +4,13 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.MediumTest
+import com.jehutyno.yomikata.repository.database.RoomKanjiSolo
+import com.jehutyno.yomikata.repository.database.RoomRadicals
+import com.jehutyno.yomikata.repository.database.YomikataDatabase
 import com.jehutyno.yomikata.repository.local.*
-import org.junit.Assert.*
-
+import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,14 +20,14 @@ import org.junit.runner.RunWith
 @MediumTest
 class KanjiSoloDaoTest {
 
-    private lateinit var database: YomikataDataBase
+    private lateinit var database: YomikataDatabase
     private lateinit var kanjiSoloDao: KanjiSoloDao
 
     @Before
     fun setupDatabase() {
         database = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
-            YomikataDataBase::class.java
+            YomikataDatabase::class.java
         ).allowMainThreadQueries().build()
 
         kanjiSoloDao = database.kanjiSoloDao()
@@ -36,7 +39,7 @@ class KanjiSoloDaoTest {
     }
 
     @Test
-    fun kanjiSoloCount() {
+    fun kanjiSoloCount() = runBlocking {
         val size = sampleRoomKanjiSolo.size
         for (roomKanjiSolo in sampleRoomKanjiSolo)
             kanjiSoloDao.addKanjiSolo(roomKanjiSolo)
@@ -46,7 +49,7 @@ class KanjiSoloDaoTest {
     }
 
     @Test
-    fun kanjiSoloCountWithOther() {
+    fun kanjiSoloCountWithOther() = runBlocking {
         val size = sampleRoomKanjiSolo.size
         for (roomKanjiSolo in sampleRoomKanjiSolo)
             kanjiSoloDao.addKanjiSolo(roomKanjiSolo)
@@ -58,7 +61,7 @@ class KanjiSoloDaoTest {
     }
 
     @Test
-    fun radicalsCount() {
+    fun radicalsCount() = runBlocking {
         val size = sampleRoomRadicals.size
         for (roomRadical in sampleRoomRadicals)
             kanjiSoloDao.addRadical(roomRadical)
@@ -68,7 +71,7 @@ class KanjiSoloDaoTest {
     }
 
     @Test
-    fun radicalsCountWithOthers() {
+    fun radicalsCountWithOthers() = runBlocking {
         val size = sampleRoomRadicals.size
         for (roomKanjiSolo in sampleRoomKanjiSolo)
             kanjiSoloDao.addKanjiSolo(roomKanjiSolo)
@@ -80,7 +83,7 @@ class KanjiSoloDaoTest {
     }
 
     @Test
-    fun addKanjiSolo() {
+    fun addKanjiSolo() = runBlocking {
         for (roomKanjiSolo in sampleRoomKanjiSolo) {
             kanjiSoloDao.addKanjiSolo(roomKanjiSolo)
             assert (
@@ -90,7 +93,7 @@ class KanjiSoloDaoTest {
     }
 
     @Test
-    fun addRadical() {
+    fun addRadical() = runBlocking {
         for (roomRadical in sampleRoomRadicals) {
             kanjiSoloDao.addRadical(roomRadical)
             assert (
@@ -100,7 +103,7 @@ class KanjiSoloDaoTest {
     }
 
     @Test
-    fun getSoloByKanji() {
+    fun getSoloByKanji() = runBlocking {
         for (roomKanjiSolo in sampleRoomKanjiSolo) {
             val kanji = roomKanjiSolo.kanji
             kanjiSoloDao.addKanjiSolo(roomKanjiSolo)
@@ -113,7 +116,7 @@ class KanjiSoloDaoTest {
 
     // test what happens when there is no kanjiSolo with the specified kanji
     @Test
-    fun getSoloByKanjiNotFound() {
+    fun getSoloByKanjiNotFound() = runBlocking {
         val nonExistentKanji = "幽霊"
         for (roomKanjiSolo in sampleRoomKanjiSolo) {
             val kanji = roomKanjiSolo.kanji
@@ -129,7 +132,7 @@ class KanjiSoloDaoTest {
     }
 
     @Test
-    fun getSoloByKanjiRadical() {
+    fun getSoloByKanjiRadical() = runBlocking {
         for (roomKanjiSoloRadical in sampleRoomKanjiSoloRadical) {
             with(roomKanjiSoloRadical) {
                 val roomKanjiSolo = RoomKanjiSolo.from(this.toKanjiSolo())
@@ -146,7 +149,7 @@ class KanjiSoloDaoTest {
     }
 
     @Test
-    fun getKanjiRadical() {
+    fun getKanjiRadical() = runBlocking {
         for (roomRadical in sampleRoomRadicals) {
             kanjiSoloDao.addRadical(roomRadical)
             val radicalString = roomRadical.radical

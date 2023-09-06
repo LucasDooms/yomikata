@@ -4,11 +4,11 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
-import com.jehutyno.yomikata.repository.local.RoomSentences
-import com.jehutyno.yomikata.repository.local.YomikataDataBase
-import org.junit.Assert.*
-
+import com.jehutyno.yomikata.repository.database.RoomSentences
+import com.jehutyno.yomikata.repository.database.YomikataDatabase
+import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -18,14 +18,14 @@ import org.junit.runner.RunWith
 @SmallTest
 class SentenceDaoTest {
 
-    private lateinit var database: YomikataDataBase
+    private lateinit var database: YomikataDatabase
     private lateinit var sentenceDao: SentenceDao
 
     @Before
     fun setupDatabase() {
         database = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
-            YomikataDataBase::class.java
+            YomikataDatabase::class.java
         ).allowMainThreadQueries().build()
 
         sentenceDao = database.sentenceDao()
@@ -37,7 +37,7 @@ class SentenceDaoTest {
     }
 
     @Test
-    fun addSentence() {
+    fun addSentence() = runBlocking {
         for (roomSentence in sampleRoomSentences) {
             val id = sentenceDao.addSentence(roomSentence)
             assert (
@@ -47,7 +47,7 @@ class SentenceDaoTest {
     }
 
     @Test
-    fun getRandomSentence() {
+    fun getRandomSentence() = runBlocking {
         val sample = RoomSentences(1, "{彼;かれ}が{試験;しけん}に{受;う}かるかどうか{は;わ}{五;ご}{分;ぶ}{五;ご}{分;ぶ}だ。",
             "It's 50/50 whether he passes the test or not.",
             "Les chances qu'il réussisse l'examen ou pas sont de 50/50.", 4)
@@ -61,7 +61,7 @@ class SentenceDaoTest {
     }
 
     @Test
-    fun getSentenceById() {
+    fun getSentenceById() = runBlocking {
         for (roomSentence in sampleRoomSentences) {
             val id = sentenceDao.addSentence(roomSentence)
             assert (
@@ -71,7 +71,7 @@ class SentenceDaoTest {
     }
 
     @Test
-    fun updateSentence() {
+    fun updateSentence() = runBlocking {
         val sample = sampleRoomSentences[0]
         val id = sentenceDao.addSentence(sample)
         val editSample = sample.copy(_id = id, en = "edit")

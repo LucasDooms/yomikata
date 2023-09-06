@@ -15,7 +15,8 @@
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:orientation="horizontal"
-        android:paddingTop="16dp">
+        android:paddingTop="16dp"
+        android:baselineAligned="false">
 
         <FrameLayout
             android:id="@+id/option_1_container"
@@ -23,7 +24,6 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
             android:layout_weight="1"
             android:background="@drawable/rounded_bg"
             android:foreground="?attr/selectableItemBackground">
@@ -61,7 +61,6 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_gravity="center"
-            android:layout_marginLeft="8dp"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:background="@drawable/rounded_bg"
@@ -101,7 +100,8 @@
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:orientation="horizontal"
-        android:paddingTop="16dp">
+        android:paddingTop="16dp"
+        android:baselineAligned="false">
 
         <FrameLayout
             android:id="@+id/option_3_container"
@@ -109,7 +109,6 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:layout_marginEnd="8dp"
-            android:layout_marginRight="8dp"
             android:layout_weight="1"
             android:background="@drawable/rounded_bg"
             android:foreground="?attr/selectableItemBackground">
@@ -147,7 +146,6 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:layout_marginStart="8dp"
-            android:layout_marginLeft="8dp"
             android:layout_weight="1"
             android:background="@drawable/rounded_bg"
             android:foreground="?attr/selectableItemBackground">

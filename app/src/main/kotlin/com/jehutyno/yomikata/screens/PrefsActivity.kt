@@ -1,5 +1,6 @@
 package com.jehutyno.yomikata.screens
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -13,11 +14,25 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import com.jehutyno.yomikata.R
-import com.jehutyno.yomikata.repository.local.YomikataDataBase
-import com.jehutyno.yomikata.util.*
+import com.jehutyno.yomikata.YomikataZKApplication
+import com.jehutyno.yomikata.repository.database.YomikataDatabase
+import com.jehutyno.yomikata.util.Category
+import com.jehutyno.yomikata.util.FileUtils
+import com.jehutyno.yomikata.util.Prefs
+import com.jehutyno.yomikata.util.RestartDialogMessage
+import com.jehutyno.yomikata.util.backupProgress
+import com.jehutyno.yomikata.util.getBackupLauncher
+import com.jehutyno.yomikata.util.getLevelDownloadVersion
+import com.jehutyno.yomikata.util.getRestartDialog
+import com.jehutyno.yomikata.util.getRestoreLauncher
+import com.jehutyno.yomikata.util.restoreProgress
 import com.wooplr.spotlight.prefs.PreferencesManager
+import io.github.inflationx.viewpump.ViewPumpContextWrapper
 import mu.KLogging
-import splitties.alertdialog.appcompat.*
+import splitties.alertdialog.appcompat.alertDialog
+import splitties.alertdialog.appcompat.cancelButton
+import splitties.alertdialog.appcompat.messageResource
+import splitties.alertdialog.appcompat.okButton
 
 
 /**
@@ -30,6 +45,10 @@ class PrefsActivity : AppCompatActivity() {
     private lateinit var backupLauncher : ActivityResultLauncher<Intent>
     private lateinit var restoreLauncher : ActivityResultLauncher<Intent>
 
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase, YomikataZKApplication.viewPump))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,10 +79,10 @@ class PrefsActivity : AppCompatActivity() {
             return requireContext().alertDialog {
                 messageResource = R.string.prefs_reinit_sure
                 okButton {
-                    YomikataDataBase.resetDatabase(requireContext())
-                    YomikataDataBase.forceLoadDatabase(requireContext())
+                    YomikataDatabase.resetDatabase(requireContext())
+                    YomikataDatabase.forceLoadDatabase(requireContext())
                     requireActivity().getRestartDialog(RestartDialogMessage.RESET) {
-                        YomikataDataBase.restoreLocalBackup(requireContext())
+                        YomikataDatabase.restoreLocalBackup(requireContext())
                     }.show()
                 }
                 cancelButton()
@@ -119,7 +138,7 @@ class PrefsActivity : AppCompatActivity() {
                     PreferencesManager(activity).resetAll()
                     // tell quizzes activity to start in home screen fragment
                     val intent = Intent()
-                    intent.putExtra("gotoCategory", Categories.HOME)
+                    intent.putExtra("gotoCategory", Category.HOME)
                     requireActivity().setResult(RESULT_OK, intent)
                     requireActivity().finish()
                     return true

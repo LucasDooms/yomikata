@@ -3,6 +3,7 @@ package com.jehutyno.yomikata.screens.quizzes
 import android.R.id.home
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
@@ -11,15 +12,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import com.google.android.material.appbar.AppBarLayout
-import com.google.android.material.navigation.NavigationView
-import androidx.core.content.ContextCompat
-import androidx.core.view.GravityCompat
-import androidx.drawerlayout.widget.DrawerLayout
-import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.appcompat.widget.SwitchCompat
-import androidx.appcompat.widget.Toolbar
 import android.view.KeyEvent
 import android.view.Menu
 import android.view.MenuItem
@@ -27,27 +19,34 @@ import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
 import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.TextView
 import android.window.OnBackInvokedDispatcher
 import androidx.activity.addCallback
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2
 import com.flaviofaria.kenburnsview.KenBurnsView
 import com.getbase.floatingactionbutton.FloatingActionButton
 import com.getbase.floatingactionbutton.FloatingActionsMenu
+import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.navigation.NavigationView
 import com.jehutyno.yomikata.R
+import com.jehutyno.yomikata.YomikataZKApplication
 import com.jehutyno.yomikata.databinding.ActivityQuizzesBinding
+import com.jehutyno.yomikata.databinding.MenuSwitchBinding
+import com.jehutyno.yomikata.databinding.NavHeaderBinding
 import com.jehutyno.yomikata.screens.PrefsActivity
-import com.jehutyno.yomikata.screens.content.QuizzesPagerAdapter
 import com.jehutyno.yomikata.screens.search.SearchResultActivity
 import com.jehutyno.yomikata.util.*
 import com.jehutyno.yomikata.view.AppBarStateChangeListener
-import com.wooplr.spotlight.utils.SpotlightListener
-import mu.KLogging
-import org.kodein.di.DIAware
+import io.github.inflationx.viewpump.ViewPumpContextWrapper
 import org.kodein.di.DI
+import org.kodein.di.DIAware
 import org.kodein.di.android.di
 import splitties.alertdialog.appcompat.*
 import java.util.*
@@ -57,14 +56,7 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
 
     override val di: DI by di()
 
-    companion object : KLogging() {
-        val UPDATE_INTENT = "update_intent"
-        val UPDATE_COUNT = "update_count"
-        val UPDATE_PROGRESS = "update_progress"
-        val UPDATE_FINISHED = "update_finished"
-    }
-
-    private var selectedCategory: Int = 0
+    private var selectedCategory: Category = Category.HOME
     private lateinit var toolbar: Toolbar
     lateinit var fabMenu: FloatingActionsMenu
     private var recreate = false
@@ -73,20 +65,24 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
     private var menu: Menu? = null
 
     val handler = Handler(Looper.getMainLooper())
-    val runnable = object : Runnable {
+    private val runnable = object : Runnable {
         override fun run() {
             setImageRandom()
             handler.postDelayed(this, 7000)
         }
     }
 
-    val homeImages = intArrayOf(R.drawable.pic_04, R.drawable.pic_05, R.drawable.pic_06,
+    private val homeImages = intArrayOf(R.drawable.pic_04, R.drawable.pic_05, R.drawable.pic_06,
         R.drawable.pic_07, R.drawable.pic_08, R.drawable.pic_21, R.drawable.pic_22,
         R.drawable.pic_23, R.drawable.pic_24, R.drawable.pic_25)
 
     // View Binding
     private lateinit var binding: ActivityQuizzesBinding
 
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase, YomikataZKApplication.viewPump))
+    }
 
     fun voicesDownload(level: Int, onSuccess: () -> Unit) {
         launchVoicesDownload(this, level) {
@@ -115,7 +111,7 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
 
-        toolbar = findViewById(R.id.toolbar)
+        toolbar = binding.toolbar
         setSupportActionBar(toolbar)
         supportActionBar?.apply {
             setHomeAsUpIndicator(R.drawable.ic_menu)
@@ -136,8 +132,8 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
             }
         })
 
-        selectedCategory = Categories.HOME
-        displayCategoryTitle(Categories.HOME)
+        selectedCategory = Category.HOME
+        displayCategoryTitle(Category.HOME)
         binding.multipleActions.visibility = GONE
 
         // Set up the navigation drawer.
@@ -149,18 +145,18 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
 
         quizzesAdapter = QuizzesPagerAdapter(this, di)
         binding.pagerQuizzes.adapter = quizzesAdapter
-        binding.pagerQuizzes.currentItem = quizzesAdapter.positionFromCategory(selectedCategory)
+        binding.pagerQuizzes.currentItem = QuizzesPagerAdapter.positionFromCategory(selectedCategory)
         binding.pagerQuizzes.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
 
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 selectedCategory = quizzesAdapter.categories[position]
-                if (selectedCategory == Categories.HOME) {
+                if (selectedCategory == Category.HOME) {
                     binding.multipleActions.visibility = GONE
                 } else {
                     binding.multipleActions.visibility = VISIBLE
                 }
-                pref.edit().putInt(Prefs.SELECTED_CATEGORY.pref, selectedCategory).apply()
+                pref.edit().putInt(Prefs.SELECTED_CATEGORY.pref, selectedCategory.index).apply()
                 displayCategoryTitle(selectedCategory)
                 binding.navView.setCheckedItem(quizzesAdapter.getMenuItemFromPosition(position))
             }
@@ -174,7 +170,7 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
                 // Viewpager2 uses the tag: "f" + position to store its fragments
                 val fragment = supportFragmentManager.findFragmentByTag("f${binding.pagerQuizzes.currentItem}")
                 if (fragment is QuizzesFragment) {
-                    fragment.launchQuizClick(quizStrategy, binding.textTitle.text.toString())
+                    fragment.launchQuizClick(quizStrategy, null, binding.textTitle.text.toString())
                     binding.multipleActions.collapseImmediately()
                 }
             }
@@ -241,11 +237,12 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
     }
 
     private fun tutos() {
-        spotlightWelcome(this, binding.anchor, getString(R.string.tuto_yomikataz), getString(R.string.tuto_welcome), SpotlightListener {
+        spotlightWelcome(this, binding.anchor, getString(R.string.tuto_yomikataz), getString(R.string.tuto_welcome)
+        ) {
             spotlightTuto(this, getNavButtonView(toolbar), getString(R.string.tuto_categories),
-                getString(R.string.tuto_categories_message), SpotlightListener {
-            })
-        })
+                getString(R.string.tuto_categories_message)
+            ) {}
+        }
     }
 
     private fun getNavButtonView(toolbar: Toolbar): View? {
@@ -260,11 +257,17 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
         } else {
             @Suppress("DEPRECATION") packageManager.getPackageInfo(packageName, 0)
         }
-        navigationView.getHeaderView(0).findViewById<TextView>(R.id.version).text = getString(R.string.yomiakataz_drawer, packageInfo.versionName)
-        navigationView.getHeaderView(0).findViewById<ImageView>(R.id.facebook).setOnClickListener { contactFacebook(this) }
-        navigationView.getHeaderView(0).findViewById<ImageView>(R.id.discord).setOnClickListener { contactDiscord(this) }
-        navigationView.getHeaderView(0).findViewById<ImageView>(R.id.play_store).setOnClickListener { contactPlayStore(this) }
-        navigationView.getHeaderView(0).findViewById<ImageView>(R.id.share).setOnClickListener { shareApp(this) }
+
+        val navHeaderBinding = NavHeaderBinding.bind(navigationView.getHeaderView(0))
+        val navMenuDayNightSwitchBinding = MenuSwitchBinding.bind(
+            navigationView.menu.findItem(R.id.day_night_item).actionView!!
+        )
+
+        navHeaderBinding.version.text = getString(R.string.yomiakataz_drawer, packageInfo.versionName)
+        navHeaderBinding.facebook.setOnClickListener { contactFacebook(this) }
+        navHeaderBinding.discord.setOnClickListener { contactDiscord(this) }
+        navHeaderBinding.playStore.setOnClickListener { contactPlayStore(this) }
+        navHeaderBinding.share.setOnClickListener { shareApp(this) }
 
         navigationView.setNavigationItemSelectedListener { menuItem ->
             binding.multipleActions.collapse()
@@ -272,51 +275,51 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
             when (menuItem.itemId) {
                 R.id.home -> {
                     menuItem.isChecked = true
-                    binding.pagerQuizzes.setCurrentItem(quizzesAdapter.positionFromCategory(Categories.HOME), false)
+                    binding.pagerQuizzes.setCurrentItem(QuizzesPagerAdapter.positionFromCategory(Category.HOME), false)
                 }
                 R.id.your_selections_item -> {
                     menuItem.isChecked = true
-                    binding.pagerQuizzes.setCurrentItem(quizzesAdapter.positionFromCategory(Categories.CATEGORY_SELECTIONS), false)
+                    binding.pagerQuizzes.setCurrentItem(QuizzesPagerAdapter.positionFromCategory(Category.SELECTIONS), false)
                 }
                 R.id.hiragana_item -> {
                     menuItem.isChecked = true
-                    binding.pagerQuizzes.setCurrentItem(quizzesAdapter.positionFromCategory(Categories.CATEGORY_HIRAGANA), false)
+                    binding.pagerQuizzes.setCurrentItem(QuizzesPagerAdapter.positionFromCategory(Category.HIRAGANA), false)
                 }
                 R.id.katakana_item -> {
                     menuItem.isChecked = true
-                    binding.pagerQuizzes.setCurrentItem(quizzesAdapter.positionFromCategory(Categories.CATEGORY_KATAKANA), false)
+                    binding.pagerQuizzes.setCurrentItem(QuizzesPagerAdapter.positionFromCategory(Category.KATAKANA), false)
                 }
                 R.id.kanji_item -> {
                     menuItem.isChecked = true
-                    binding.pagerQuizzes.setCurrentItem(quizzesAdapter.positionFromCategory(Categories.CATEGORY_KANJI), false)
+                    binding.pagerQuizzes.setCurrentItem(QuizzesPagerAdapter.positionFromCategory(Category.KANJI), false)
                 }
                 R.id.counters_item -> {
                     menuItem.isChecked = true
-                    binding.pagerQuizzes.setCurrentItem(quizzesAdapter.positionFromCategory(Categories.CATEGORY_COUNTERS), false)
+                    binding.pagerQuizzes.setCurrentItem(QuizzesPagerAdapter.positionFromCategory(Category.COUNTERS), false)
                 }
                 R.id.jlpt1_item -> {
                     menuItem.isChecked = true
-                    binding.pagerQuizzes.setCurrentItem(quizzesAdapter.positionFromCategory(Categories.CATEGORY_JLPT_1), false)
+                    binding.pagerQuizzes.setCurrentItem(QuizzesPagerAdapter.positionFromCategory(Category.JLPT_1), false)
                 }
                 R.id.jlpt2_item -> {
                     menuItem.isChecked = true
-                    binding.pagerQuizzes.setCurrentItem(quizzesAdapter.positionFromCategory(Categories.CATEGORY_JLPT_2), false)
+                    binding.pagerQuizzes.setCurrentItem(QuizzesPagerAdapter.positionFromCategory(Category.JLPT_2), false)
                 }
                 R.id.jlpt3_item -> {
                     menuItem.isChecked = true
-                    binding.pagerQuizzes.setCurrentItem(quizzesAdapter.positionFromCategory(Categories.CATEGORY_JLPT_3), false)
+                    binding.pagerQuizzes.setCurrentItem(QuizzesPagerAdapter.positionFromCategory(Category.JLPT_3), false)
                 }
                 R.id.jlpt4_item -> {
                     menuItem.isChecked = true
-                    binding.pagerQuizzes.setCurrentItem(quizzesAdapter.positionFromCategory(Categories.CATEGORY_JLPT_4), false)
+                    binding.pagerQuizzes.setCurrentItem(QuizzesPagerAdapter.positionFromCategory(Category.JLPT_4), false)
                 }
                 R.id.jlpt5_item -> {
                     menuItem.isChecked = true
-                    binding.pagerQuizzes.setCurrentItem(quizzesAdapter.positionFromCategory(Categories.CATEGORY_JLPT_5), false)
+                    binding.pagerQuizzes.setCurrentItem(QuizzesPagerAdapter.positionFromCategory(Category.JLPT_5), false)
                 }
                 R.id.day_night_item -> {
                     menuItem.isChecked = !menuItem.isChecked
-                    menuItem.actionView?.findViewById<SwitchCompat>(R.id.my_switch)?.toggle()
+                    navMenuDayNightSwitchBinding.mySwitch.toggle()
                 }
                 R.id.settings -> {
                     menuItem.isChecked = false
@@ -330,9 +333,10 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
             true
         }
 
-        navigationView.menu.findItem(R.id.day_night_item).actionView?.findViewById<SwitchCompat>(R.id.my_switch)?.isChecked = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
-        navigationView.menu.findItem(R.id.day_night_item).isChecked = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
-        navigationView.menu.findItem(R.id.day_night_item).actionView?.findViewById<SwitchCompat>(R.id.my_switch)?.setOnCheckedChangeListener {
+        val isNightModeOn = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
+        navMenuDayNightSwitchBinding.mySwitch.isChecked = isNightModeOn
+        navigationView.menu.findItem(R.id.day_night_item).isChecked = isNightModeOn
+        navMenuDayNightSwitchBinding.mySwitch.setOnCheckedChangeListener {
             _, isChecked ->
             navigationView.menu.findItem(R.id.day_night_item).isChecked = isChecked
             val pref = PreferenceManager.getDefaultSharedPreferences(this)
@@ -355,79 +359,79 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
         binding.imageSectionIcon.setImageResource(homeImages[i])
     }
 
-    fun displayCategoryTitle(category: Int) {
+    fun displayCategoryTitle(category: Category) {
         when (category) {
-            Categories.HOME -> {
+            Category.HOME -> {
                 binding.logoImageview.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.yomi_logo_home))
                 binding.textTitle.text = getString(R.string.home_title)
                 binding.navView.setCheckedItem(R.id.home)
                 binding.imageSectionIcon.setImageResource(R.drawable.pic_24)
                 handler.postDelayed(runnable, 7000)
             }
-            Categories.CATEGORY_HIRAGANA -> {
+            Category.HIRAGANA -> {
                 handler.removeCallbacks(runnable)
                 binding.logoImageview.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_hiragana_big))
                 binding.textTitle.setText(R.string.drawer_hiragana)
                 binding.navView.setCheckedItem(R.id.hiragana_item)
                 binding.imageSectionIcon.setImageResource(R.drawable.pic_miyajima)
             }
-            Categories.CATEGORY_KATAKANA -> {
+            Category.KATAKANA -> {
                 handler.removeCallbacks(runnable)
                 binding.textTitle.setText(R.string.drawer_katakana)
                 binding.logoImageview.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_katakana_big))
                 binding.navView.setCheckedItem(R.id.katakana_item)
                 binding.imageSectionIcon.setImageResource(R.drawable.pic_le_charme)
             }
-            Categories.CATEGORY_KANJI -> {
+            Category.KANJI -> {
                 handler.removeCallbacks(runnable)
                 binding.logoImageview.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_kanji_big))
                 binding.textTitle.setText(R.string.drawer_kanji_beginner)
                 binding.navView.setCheckedItem(R.id.kanji_item)
                 binding.imageSectionIcon.setImageResource(R.drawable.pic_toit)
             }
-            Categories.CATEGORY_COUNTERS -> {
+            Category.COUNTERS -> {
                 handler.removeCallbacks(runnable)
                 binding.logoImageview.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_counters_big))
                 binding.textTitle.setText(R.string.drawer_counters)
                 binding.navView.setCheckedItem(R.id.counters_item)
                 binding.imageSectionIcon.setImageResource(R.drawable.pic_fujiyoshida)
             }
-            Categories.CATEGORY_JLPT_1 -> {
+            Category.JLPT_1 -> {
                 handler.removeCallbacks(runnable)
                 binding.logoImageview.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_jlpt1_big))
                 binding.textTitle.setText(R.string.drawer_jlpt1)
                 binding.navView.setCheckedItem(R.id.jlpt1_item)
                 binding.imageSectionIcon.setImageResource(R.drawable.pic_fujisan)
             }
-            Categories.CATEGORY_JLPT_2 -> {
+            Category.JLPT_2 -> {
                 handler.removeCallbacks(runnable)
                 binding.logoImageview.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_jlpt2_big))
                 binding.textTitle.setText(R.string.drawer_jlpt2)
                 binding.navView.setCheckedItem(R.id.jlpt2_item)
                 binding.imageSectionIcon.setImageResource(R.drawable.pic_hokusai)
             }
-            Categories.CATEGORY_JLPT_3 -> {
+            Category.JLPT_3 -> {
                 handler.removeCallbacks(runnable)
                 binding.logoImageview.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_jlpt3_big))
                 binding.textTitle.setText(R.string.drawer_jlpt3)
                 binding.navView.setCheckedItem(R.id.jlpt3_item)
                 binding.imageSectionIcon.setImageResource(R.drawable.pic_geisha)
             }
-            Categories.CATEGORY_JLPT_4 -> {
+            Category.JLPT_4 -> {
                 handler.removeCallbacks(runnable)
                 binding.logoImageview.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_jlpt4_big))
                 binding.textTitle.setText(R.string.drawer_jlpt4)
                 binding.navView.setCheckedItem(R.id.jlpt4_item)
                 binding.imageSectionIcon.setImageResource(R.drawable.pic_monk)
             }
-            Categories.CATEGORY_JLPT_5 -> {
+            Category.JLPT_5 -> {
                 handler.removeCallbacks(runnable)
                 binding.logoImageview.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_jlpt5_big))
                 binding.textTitle.setText(R.string.drawer_jlpt5)
                 binding.navView.setCheckedItem(R.id.jlpt5_item)
                 binding.imageSectionIcon.setImageResource(R.drawable.pic_dragon)
             }
-            Categories.CATEGORY_SELECTIONS -> {
+            Category.SELECTIONS -> {
                 handler.removeCallbacks(runnable)
                 binding.logoImageview.setImageDrawable(ContextCompat.getDrawable(this, R.drawable.ic_selections_big))
                 binding.textTitle.setText(R.string.drawer_your_selections)
@@ -459,8 +463,8 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
         return super.onOptionsItemSelected(item)
     }
 
-    fun gotoCategory(category: Int) {
-        binding.pagerQuizzes.currentItem = quizzesAdapter.positionFromCategory(category)
+    fun gotoCategory(category: Category) {
+        binding.pagerQuizzes.currentItem = QuizzesPagerAdapter.positionFromCategory(category)
     }
 
     override fun onResume() {
@@ -475,7 +479,8 @@ class QuizzesActivity : AppCompatActivity(), DIAware {
             ) { result ->
                 if (result.resultCode == Activity.RESULT_OK) {
                     result.data?.also {
-                        selectedCategory = it.getIntExtra("gotoCategory", selectedCategory)
+                        selectedCategory = it.getSerializableExtraHelper("gotoCategory",
+                                                 Category::class.java) ?: selectedCategory
                         displayCategoryTitle(selectedCategory)
                         gotoCategory(selectedCategory)
                     }
