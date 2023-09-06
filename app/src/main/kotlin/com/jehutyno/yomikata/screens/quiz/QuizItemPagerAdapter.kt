@@ -131,6 +131,17 @@ class QuizItemPagerAdapter(private val context: Context, private val callback: C
                 holder.tradSentence.visibility = if (holder.btnTrad.isSelected && words[position].second != QuizType.TYPE_JAP_EN) View.VISIBLE else View.INVISIBLE
             }
             QuizType.TYPE_EN_JAP -> {
+// <<<<<<< Clean-Database-Words
+                sound.visibility = View.GONE
+                btnFuri.visibility = View.VISIBLE
+                furiSentence.visibility = View.INVISIBLE
+                btnTrad.visibility = View.GONE
+                tradSentence.visibility = View.VISIBLE
+                tradSentence.movementMethod = ScrollingMovementMethod()
+                tradSentence.setTextColor(getWordColor(context, word.points))
+                tradSentence.textSize = PreferenceManager.getDefaultSharedPreferences(context).getString("font_size", "18")!!.toFloat()
+                tradSentence.text = word.getTrad().cleanForQCM(false)
+/** =======
                 holder.sound.visibility = View.GONE
                 holder.btnFuri.visibility = View.VISIBLE
                 holder.furiSentence.visibility = View.INVISIBLE
@@ -140,6 +151,7 @@ class QuizItemPagerAdapter(private val context: Context, private val callback: C
                 holder.tradSentence.setTextColor(getWordColor(context, word.points))
                 holder.tradSentence.textSize = PreferenceManager.getDefaultSharedPreferences(context).getString("font_size", "18")!!.toFloat()
                 holder.tradSentence.text = word.getTrad().cleanForQCM()
+**/ >>>>>>> develop
             }
             QuizType.TYPE_AUDIO -> {
                 holder.sound.visibility = View.VISIBLE
