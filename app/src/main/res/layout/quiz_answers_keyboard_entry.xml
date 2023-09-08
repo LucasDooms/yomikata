@@ -32,6 +32,7 @@
         android:layout_gravity="center"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_cancel_black_24dp"
-        app:tint="@color/lighter_gray" />
+        app:tint="@color/lighter_gray"
+        android:contentDescription="@string/reveal_correct_answer" />
 
 </LinearLayout>

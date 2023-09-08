@@ -33,7 +33,7 @@ interface QuizContract {
         fun setEditTextColor(color: Int)
         fun animateCheck(result: Boolean)
         fun reInitUI()
-        fun showAlertProgressiveSessionEnd(proposeErrors: Boolean)
+        fun showAlertProgressiveSessionEnd()
         fun setPagerPosition(position: Int)
         fun finishQuiz()
         fun showAlertNonProgressiveSessionEnd(proposeErrors: Boolean)
@@ -45,8 +45,8 @@ interface QuizContract {
         fun openAnswersScreen(answers: ArrayList<Answer>)
         fun setSentence(position: Int, sentence: Sentence)
         fun reportError(word: Word, sentence: Sentence)
-        fun speakWord(word: Word)
-        fun launchSpeakSentence(sentence: Sentence)
+        fun speakWord(word: Word, userAction: Boolean)
+        fun launchSpeakSentence(sentence: Sentence, userAction: Boolean)
         fun incrementInfiniteCount()
     }
 
@@ -61,7 +61,6 @@ interface QuizContract {
         suspend fun decreaseAllRepetitions()
         suspend fun saveAnswerResultStat(word: Word, result: Boolean)
         suspend fun saveWordSeenStat(word: Word)
-        fun setTTSSupported(ttsSupported: Int)
         fun getTTSForCurrentItem(): String
         suspend fun setIsFuriDisplayed(isFuriDisplayed: Boolean)
         suspend fun onNextWord()
@@ -79,8 +78,8 @@ interface QuizContract {
         suspend fun onOptionClick(choice: Int)
         fun onDisplayAnswersClick()
         suspend fun getRandomSentence(word: Word): Sentence
-        fun onSpeakSentence()
-        fun onSpeakWordTTS()
+        fun onSpeakSentence(userAction: Boolean)
+        fun onSpeakWordTTS(userAction: Boolean)
         fun onReportClick(position: Int)
         fun previousAnswerWrong(): Boolean
     }

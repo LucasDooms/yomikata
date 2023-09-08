@@ -9,6 +9,7 @@ import androidx.viewbinding.ViewBinding
 import com.jehutyno.yomikata.databinding.VhNewSelectionBinding
 import com.jehutyno.yomikata.databinding.VhQuizBinding
 import com.jehutyno.yomikata.model.Quiz
+import com.jehutyno.yomikata.util.Category
 
 
 private val DIFF_CALLBACK = object: DiffUtil.ItemCallback<Quiz>() {
@@ -22,7 +23,7 @@ private val DIFF_CALLBACK = object: DiffUtil.ItemCallback<Quiz>() {
 /**
  * Created by valentin on 04/10/2016.
  */
-class QuizzesAdapter(val category: Int, private val callback: Callback, private var isSelections: Boolean)
+class QuizzesAdapter(val category: Category, private val callback: Callback, private var isSelections: Boolean)
     : ListAdapter<Quiz, QuizzesAdapter.ViewHolder>(DIFF_CALLBACK) {
 
     val items: MutableList<Quiz> get() = currentList

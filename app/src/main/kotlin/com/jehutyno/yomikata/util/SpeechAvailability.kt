@@ -8,5 +8,3 @@ enum class SpeechAvailability {
     TTS_AVAILABLE,
     NOT_AVAILABLE
 }
-
-val SPEECH_NOT_INITALIZED = -3

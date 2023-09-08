@@ -6,12 +6,12 @@ import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.repository.WordRepository
 import com.jehutyno.yomikata.repository.database.RoomQuizWord
 import com.jehutyno.yomikata.repository.database.RoomWords
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.HiraganaUtils
 import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.QuizType
 import com.jehutyno.yomikata.util.getLevelFromPoints
 import com.jehutyno.yomikata.util.getNextLevel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.security.InvalidParameterException
 
@@ -56,9 +56,6 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         }
 
         val levelsArray = arrayListOf(level)
-        // includes maxed words together with previous category
-        if (level != Level.MAX && getNextLevel(level) == Level.MAX)
-            levelsArray.add(Level.MAX)
 
         val roomWordsList = wordDao.getWordsByLevels(quizIds, levelsArray.map { it.level }.toIntArray())
         return roomWordsList.map { list ->
@@ -172,6 +169,10 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         wordDao.updateWordLevelAndPoints(wordId, getLevelFromPoints(points).level, points)
     }
 
+    override suspend fun updateWordLevel(wordId: Long, level: Level) {
+        wordDao.updateWordLevel(wordId, level.level)
+    }
+
     /**
      * Update word points
      *
@@ -217,7 +218,7 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
             val newWord = Word(
                 0, updateWord.japanese, updateWord.english, updateWord.french,
                 updateWord.reading, Level.LOW, 0, 0,
-                0, 0, 0, 0, 0, 0
+                0, 0, 0, Category.HOME, 0, 0
             )
             wordDao.updateWord(RoomWords.from(newWord))
         }

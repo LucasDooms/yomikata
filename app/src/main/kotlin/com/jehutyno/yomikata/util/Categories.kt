@@ -1,60 +1,85 @@
 package com.jehutyno.yomikata.util
 
-import com.jehutyno.yomikata.util.Categories.CATEGORY_COUNTERS
-import com.jehutyno.yomikata.util.Categories.CATEGORY_HIRAGANA
-import com.jehutyno.yomikata.util.Categories.CATEGORY_JLPT_1
-import com.jehutyno.yomikata.util.Categories.CATEGORY_JLPT_2
-import com.jehutyno.yomikata.util.Categories.CATEGORY_JLPT_3
-import com.jehutyno.yomikata.util.Categories.CATEGORY_JLPT_4
-import com.jehutyno.yomikata.util.Categories.CATEGORY_JLPT_5
-import com.jehutyno.yomikata.util.Categories.CATEGORY_KANJI
-import com.jehutyno.yomikata.util.Categories.CATEGORY_KATAKANA
+import com.jehutyno.yomikata.R
+import java.security.InvalidParameterException
+
 
 /**
  * Created by valentin on 04/10/2016.
  */
-object Categories {
-    @JvmStatic val HOME = -1
-    @JvmStatic val CATEGORY_HIRAGANA = 0
-    @JvmStatic val CATEGORY_KATAKANA = 1
-    @JvmStatic val CATEGORY_KANJI = 2
-    @JvmStatic val CATEGORY_COUNTERS = 9
-    @JvmStatic val CATEGORY_JLPT_1 = 3
-    @JvmStatic val CATEGORY_JLPT_2 = 4
-    @JvmStatic val CATEGORY_JLPT_3 = 5
-    @JvmStatic val CATEGORY_JLPT_4 = 6
-    @JvmStatic val CATEGORY_JLPT_5 = 7
-    @JvmStatic val CATEGORY_SELECTIONS = 8
+enum class Category(val index: Int) {
+    // Reminder: Changing any of the index values affects both the database and user preferences
+    HOME(-1),
+    SELECTIONS(8),
+    HIRAGANA(0),
+    KATAKANA(1),
+    KANJI(2),
+    COUNTERS(9),
+    JLPT_5(7),
+    JLPT_4(6),
+    JLPT_3(5),
+    JLPT_2(4),
+    JLPT_1(3)
 }
 
-fun getCategoryLevel(category: Int): Int {
-    return when (category) {
-        CATEGORY_HIRAGANA -> 0
-        CATEGORY_KATAKANA -> 0
-        CATEGORY_KANJI -> 1
-        CATEGORY_COUNTERS -> 1
-        CATEGORY_JLPT_5 -> 2
-        CATEGORY_JLPT_4 -> 3
-        CATEGORY_JLPT_3 -> 4
-        CATEGORY_JLPT_2 -> 5
-        CATEGORY_JLPT_1 -> 6
-        else -> 6
+fun Int.toCategory(): Category {
+    return Category.values().firstOrNull { it.index == this }!!
+}
+
+fun Category.getSmallIcon(): Int {
+    return when (this) {
+        Category.HIRAGANA -> R.drawable.ic_hiragana
+        Category.KATAKANA -> R.drawable.ic_katakana
+        Category.KANJI    -> R.drawable.ic_kanji
+        Category.COUNTERS -> R.drawable.ic_counters
+        Category.JLPT_5   -> R.drawable.ic_jlpt5
+        Category.JLPT_4   -> R.drawable.ic_jlpt4
+        Category.JLPT_3   -> R.drawable.ic_jlpt3
+        Category.JLPT_2   -> R.drawable.ic_jlpt2
+        Category.JLPT_1   -> R.drawable.ic_jlpt1
+        else              -> R.drawable.ic_kanji
     }
 }
 
-fun getLevelDownloadUrl(level: Int): String {
-    return when (level) {
-        0 -> "TuyCO1IZXDmGav7/download"
-        1 -> "6YanOT2hfYqjXbm/download"
-        2 -> "vIlPQaF7vrpKdwD/download"
-        3 -> "wzYwrP3TzXiwIsa/download"
-        4 -> "HDSc5EtIVCn2lJD/download"
-        5 -> "AFrQRr4UiFLDIzh/download"
-        6 -> "HQucZsVJKAzKRnr/download"
-        else -> ""
+fun Category.getBigIcon(): Int {
+    return when (this) {
+        Category.HIRAGANA -> R.drawable.ic_hiragana_big
+        Category.KATAKANA -> R.drawable.ic_katakana_big
+        Category.KANJI    -> R.drawable.ic_kanji_big
+        Category.COUNTERS -> R.drawable.ic_counters_big
+        Category.JLPT_5   -> R.drawable.ic_jlpt5_big
+        Category.JLPT_4   -> R.drawable.ic_jlpt4_big
+        Category.JLPT_3   -> R.drawable.ic_jlpt3_big
+        Category.JLPT_2   -> R.drawable.ic_jlpt2_big
+        Category.JLPT_1   -> R.drawable.ic_jlpt1_big
+        else              -> R.drawable.ic_selections_big
     }
 }
 
+fun Category.getLevel(): Int {
+    return when (this) {
+        Category.HOME -> throw InvalidParameterException("HOME category has no level")
+        Category.SELECTIONS -> throw InvalidParameterException("SELECTIONS category has no level")
+        Category.HIRAGANA -> 0
+        Category.KATAKANA -> 0
+        Category.KANJI -> 1
+        Category.COUNTERS -> 1
+        Category.JLPT_5 -> 2
+        Category.JLPT_4 -> 3
+        Category.JLPT_3 -> 4
+        Category.JLPT_2 -> 5
+        Category.JLPT_1 -> 6
+    }
+}
+
+/**
+ * Get level download size
+ *
+ * Returns the estimated size in MB of the download
+ *
+ * @param level
+ * @return Size in MB
+ */
 fun getLevelDownloadSize(level: Int): Int {
     return when (level) {
         0 -> 5
@@ -68,7 +93,7 @@ fun getLevelDownloadSize(level: Int): Int {
 }
 
 fun getLevelDownloadVersion(level: Int): Int {
-    return  when (level) {
+    return when (level) {
         0 -> 0
         1 -> 2
         2 -> 2

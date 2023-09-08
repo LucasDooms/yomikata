@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.jehutyno.yomikata.R
+import com.jehutyno.yomikata.YomikataZKApplication
 import com.jehutyno.yomikata.repository.WordRepository
 import com.jehutyno.yomikata.util.Extras
 import com.jehutyno.yomikata.util.Level
@@ -66,8 +67,9 @@ class QuizActivity : AppCompatActivity(), DIAware {
     private var level: Level? = null
     private lateinit var quizTypes: ArrayList<QuizType>
 
+
     override fun attachBaseContext(newBase: Context) {
-        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase))
+        super.attachBaseContext(ViewPumpContextWrapper.wrap(newBase, YomikataZKApplication.viewPump))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

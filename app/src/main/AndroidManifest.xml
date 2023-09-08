@@ -6,7 +6,9 @@
         <intent>
             <action android:name="android.intent.action.VIEW" />
         </intent>
-<!--        <provider android:authorities="..." />-->
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
     </queries>
 
     <application

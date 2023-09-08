@@ -19,18 +19,19 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.FragmentContentGraphBinding
+import com.jehutyno.yomikata.managers.SeekBarsManager
 import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.screens.quiz.QuizActivity
 import com.jehutyno.yomikata.screens.word.WordDetailDialogFragment
 import com.jehutyno.yomikata.screens.word.WordsAdapter
 import com.jehutyno.yomikata.util.Categories
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.Extras
 import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.Prefs
 import com.jehutyno.yomikata.util.QuizStrategy
 import com.jehutyno.yomikata.util.QuizType
-import com.jehutyno.yomikata.util.SeekBarsManager
 import com.jehutyno.yomikata.util.getParcelableArrayListHelper
 import com.jehutyno.yomikata.util.getSerializableHelper
 import com.jehutyno.yomikata.util.toBool
@@ -51,7 +52,7 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
     private var actionMode: ActionMode? = null
     private lateinit var actionModeCallback: ActionMode.Callback
     private lateinit var quizIds: LongArray
-    private var category: Int = -1
+    private lateinit var category: Category
     private lateinit var selectedTypes: ArrayList<QuizType>
     protected abstract val level: Level?
     private var lastPosition = -1
@@ -93,7 +94,7 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
 
         requireArguments().also { args ->
             quizIds = args.getLongArray(Extras.EXTRA_QUIZ_IDS)!!
-            category = args.getInt(Extras.EXTRA_CATEGORY)
+            category = args.getSerializableHelper(Extras.EXTRA_CATEGORY, Category::class.java)!!
             if (category == Categories.CATEGORY_SELECTIONS) {
                 selection = args.getSerializableHelper(Extras.EXTRA_SELECTION, Quiz::class.java)
             }
@@ -216,9 +217,9 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
         val pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
         val cat1 = pref.getInt(Prefs.LATEST_CATEGORY_1.pref, -1)
 
-        if (category != cat1) {
+        if (category.index != cat1) {
             pref.edit().putInt(Prefs.LATEST_CATEGORY_2.pref, cat1).apply()
-            pref.edit().putInt(Prefs.LATEST_CATEGORY_1.pref, category).apply()
+            pref.edit().putInt(Prefs.LATEST_CATEGORY_1.pref, category.index).apply()
         }
 
         val intent = Intent(requireActivity(), QuizActivity::class.java).apply {

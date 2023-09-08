@@ -1,5 +1,6 @@
 package com.jehutyno.yomikata.screens.answers
 
+import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.util.Log
@@ -14,11 +15,17 @@ import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.FragmentContentBinding
 import com.jehutyno.yomikata.managers.VoicesManager
 import com.jehutyno.yomikata.model.Answer
-import com.jehutyno.yomikata.util.*
+import com.jehutyno.yomikata.util.LocalPersistence
+import com.jehutyno.yomikata.util.createNewSelectionDialog
+import com.jehutyno.yomikata.util.reportError
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.kodein.di.*
-import java.util.*
+import org.kodein.di.DI
+import org.kodein.di.DITrigger
+import org.kodein.di.bind
+import org.kodein.di.instance
+import org.kodein.di.on
+import org.kodein.di.provider
 
 
 /**
@@ -32,30 +39,24 @@ class AnswersFragment(private val di: DI) : Fragment(), AnswersContract.View, An
         bind<AnswersContract.Presenter>() with provider {
             AnswersPresenter(instance(arg = lifecycleScope), instance(), instance())
         }
-        bind<VoicesManager>() with singleton { VoicesManager(requireActivity()) }
+        bind<Context>(overrides = true) with instance(requireContext())
     }
-    @Suppress("unused")
-    private val voicesManager: VoicesManager by subDI.instance()
+    private val voicesManagerTrigger = DITrigger()
+    private val voicesManager: VoicesManager by subDI.on(trigger = voicesManagerTrigger).instance(arg = this)
     private val presenter: AnswersContract.Presenter by subDI.instance()
 
     private lateinit var layoutManager: LinearLayoutManager
     private lateinit var adapter: AnswersAdapter
-
-    private var tts: TextToSpeech? = null
-    private var ttsSupported: Int = TextToSpeech.LANG_NOT_SUPPORTED
 
     // View Binding
     private var _binding: FragmentContentBinding? = null
     private val binding get() = _binding!!
 
 
-    override fun onInit(status: Int) {
-        ttsSupported = onTTSinit(activity, status, tts)
-    }
+    override fun onInit(status: Int) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        tts = TextToSpeech(activity, this)
 
         val answersListRaw = LocalPersistence.readObjectFromFile(context, "answers")
         val answersList = answersListRaw as ArrayList<*>
@@ -82,6 +83,11 @@ class AnswersFragment(private val di: DI) : Fragment(), AnswersContract.View, An
             it.adapter = adapter
             it.layoutManager = layoutManager
         }
+    }
+
+    override fun onAttach(context: Context) {
+        voicesManagerTrigger.trigger()
+        super.onAttach(context)
     }
 
     override fun onResume() {
@@ -135,17 +141,21 @@ class AnswersFragment(private val di: DI) : Fragment(), AnswersContract.View, An
 
     override fun onTTSClick(position: Int) {
         val word = adapter.items[position].second
-        voicesManager.speakWord(word, ttsSupported, tts)
+        voicesManager.speakWord(word, true)
     }
 
     override fun onSentenceTTSClick(position: Int) {
         val sentence = adapter.items[position].third
-        voicesManager.speakSentence(sentence, ttsSupported, tts)
+        voicesManager.speakSentence(sentence, true)
+    }
+
+    override fun onPause() {
+        voicesManager.stop()
+        super.onPause()
     }
 
     override fun onDestroy() {
-        tts?.stop()
-        tts?.shutdown()
+        voicesManager.destroy()
         super.onDestroy()
     }
 

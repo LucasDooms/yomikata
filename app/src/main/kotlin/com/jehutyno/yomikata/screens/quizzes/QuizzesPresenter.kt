@@ -13,7 +13,7 @@ import com.jehutyno.yomikata.model.StatResult
 import com.jehutyno.yomikata.presenters.WordCountInterface
 import com.jehutyno.yomikata.repository.QuizRepository
 import com.jehutyno.yomikata.repository.StatsRepository
-import com.jehutyno.yomikata.util.Categories
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.Prefs
 import com.jehutyno.yomikata.util.QuizType
 import com.jehutyno.yomikata.util.toQuizType
@@ -31,7 +31,7 @@ class QuizzesPresenter(
     private val quizRepository: QuizRepository,
     private val statsRepository: StatsRepository,
     wordCountInterface: WordCountInterface,
-    category: Int) : QuizzesContract.Presenter, WordCountInterface by wordCountInterface {
+    category: Category) : QuizzesContract.Presenter, WordCountInterface by wordCountInterface {
 
     companion object : KLogging()
 
@@ -51,7 +51,7 @@ class QuizzesPresenter(
     }
 
     override suspend fun createQuiz(quizName: String) {
-        quizRepository.saveQuiz(quizName, Categories.CATEGORY_SELECTIONS)
+        quizRepository.saveQuiz(quizName, Category.SELECTIONS)
     }
 
     override suspend fun updateQuizName(quizId: Long, quizName: String) {
@@ -77,7 +77,7 @@ class QuizzesPresenter(
 
     @Synchronized
     private fun switchOthers(type: QuizType) {
-        val newSelectedTypes = selectedTypes.value!!
+        val newSelectedTypes = ArrayList(selectedTypes.value!!) // makes copy
         selectedTypes.value!!.also { types ->
             if (!types.contains(type)) {
                 if (types.contains(QuizType.TYPE_AUTO)) {
@@ -89,6 +89,7 @@ class QuizzesPresenter(
                 newSelectedTypes.remove(type)
                 if (newSelectedTypes.size == 0) {
                     // if no types are selected -> automatically select the auto type
+                    saveQuizTypeArrayInPrefs(Prefs.WAS_SELECTED_QUIZ_TYPES.pref, types)
                     newSelectedTypes.add(QuizType.TYPE_AUTO)
                 }
             }
@@ -104,6 +105,8 @@ class QuizzesPresenter(
                     // if auto is unselected -> get saved selection from preferences
                     getQuizTypeArrayFromPrefs(Prefs.WAS_SELECTED_QUIZ_TYPES.pref, QuizType.TYPE_PRONUNCIATION)
                 } else {
+                    // if auto is selected -> save the current preferences to be restored later
+                    saveQuizTypeArrayInPrefs(Prefs.WAS_SELECTED_QUIZ_TYPES.pref, types)
                     arrayListOf(QuizType.TYPE_AUTO)
                 }
             }
@@ -154,14 +157,14 @@ class QuizzesPresenter(
      *
      * @param category Category of quiz that is being launched
      */
-    override suspend fun onLaunchQuizClick(category: Int) {
-        statsRepository.addStatEntry(StatAction.LAUNCH_QUIZ_FROM_CATEGORY, category.toLong(), Calendar.getInstance().timeInMillis, StatResult.OTHER)
+    override suspend fun onLaunchQuizClick(category: Category) {
+        statsRepository.addStatEntry(StatAction.LAUNCH_QUIZ_FROM_CATEGORY, category.index.toLong(), Calendar.getInstance().timeInMillis, StatResult.OTHER)
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val cat1 = pref.getInt(Prefs.LATEST_CATEGORY_1.pref, -1)
 
-        if (category != cat1) {
+        if (category.index != cat1) {
             pref.edit().putInt(Prefs.LATEST_CATEGORY_2.pref, cat1).apply()
-            pref.edit().putInt(Prefs.LATEST_CATEGORY_1.pref, category).apply()
+            pref.edit().putInt(Prefs.LATEST_CATEGORY_1.pref, category.index).apply()
         }
     }
 

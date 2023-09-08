@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.VhWordShortBinding
 import com.jehutyno.yomikata.model.Word
-import com.jehutyno.yomikata.model.getCategoryIcon
 import com.jehutyno.yomikata.model.getWordColor
+import com.jehutyno.yomikata.util.getSmallIcon
 import com.jehutyno.yomikata.util.toBool
 import com.jehutyno.yomikata.util.toInt
 
@@ -82,7 +82,7 @@ class WordsAdapter(private val context: Context, private val callback: Callback)
         val word = currentList[position]
         holder.wordName.text = word.japanese
         holder.wordName.setTextColor(getWordColor(context, word.points))
-        holder.categoryIcon.setImageResource(getCategoryIcon(word.baseCategory))
+        holder.categoryIcon.setImageResource(word.baseCategory.getSmallIcon())
 
         val color = ContextCompat.getColor(context, R.color.content_icon_color)
         holder.categoryIcon.drawable?.colorFilter = BlendModeColorFilterCompat.createBlendModeColorFilterCompat(color, BlendModeCompat.SRC_ATOP)

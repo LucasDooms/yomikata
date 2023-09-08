@@ -17,25 +17,25 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.FragmentQuizzesBinding
+import com.jehutyno.yomikata.managers.SeekBarsManager
 import com.jehutyno.yomikata.model.Quiz
 import com.jehutyno.yomikata.repository.QuizRepository
 import com.jehutyno.yomikata.screens.content.ContentActivity
 import com.jehutyno.yomikata.screens.quiz.QuizActivity
-import com.jehutyno.yomikata.util.Categories
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.Extras
 import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.Prefs
 import com.jehutyno.yomikata.util.QuizStrategy
 import com.jehutyno.yomikata.util.QuizType
-import com.jehutyno.yomikata.util.SeekBarsManager
 import com.jehutyno.yomikata.util.SpeechAvailability
 import com.jehutyno.yomikata.util.animateSeekBar
 import com.jehutyno.yomikata.util.checkSpeechAvailability
 import com.jehutyno.yomikata.util.createNewSelectionDialog
-import com.jehutyno.yomikata.util.getCategoryLevel
+import com.jehutyno.yomikata.util.getLevel
 import com.jehutyno.yomikata.util.getLevelDownloadSize
 import com.jehutyno.yomikata.util.getLevelDownloadVersion
-import com.jehutyno.yomikata.util.onTTSinit
+import com.jehutyno.yomikata.util.getSerializableHelper
 import com.jehutyno.yomikata.util.speechNotSupportedAlert
 import com.jehutyno.yomikata.util.spotlightTuto
 import kotlinx.coroutines.flow.map
@@ -68,7 +68,7 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
     }
 
     private lateinit var adapter: QuizzesAdapter
-    private var selectedCategory: Int = 0
+    private var selectedCategory: Category = Category.HOME
     private var tts: TextToSpeech? = null
     private var ttsSupported: Int = TextToSpeech.LANG_NOT_SUPPORTED
 
@@ -80,17 +80,16 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
     private val binding get() = _binding!!
 
 
-    override fun onInit(status: Int) {
-        ttsSupported = onTTSinit(context, status, tts)
-    }
+    override fun onInit(status: Int) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // make sure selectedCategory is set before mpresenter is used to properly initialize with kodein
-        selectedCategory = requireArguments().getInt(Extras.EXTRA_CATEGORY)
+        selectedCategory = requireArguments()
+            .getSerializableHelper(Extras.EXTRA_CATEGORY, Category::class.java)!!
         adapter = QuizzesAdapter(selectedCategory, this,
-            selectedCategory == Categories.CATEGORY_SELECTIONS
+            selectedCategory == Category.SELECTIONS
         )
     }
 
@@ -170,8 +169,8 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
         binding.btnAudioSwitch.setOnClickListener {
             spotlightTuto(requireActivity(), binding.btnAudioSwitch, getString(R.string.tutos_audio_quiz), getString(R.string.tutos_audio_quiz_message)
             ) { }
-            when (checkSpeechAvailability(requireActivity(), ttsSupported, getCategoryLevel(selectedCategory))) {
-                SpeechAvailability.NOT_AVAILABLE -> speechNotSupportedAlert(requireActivity(), getCategoryLevel(selectedCategory)) {
+            when (checkSpeechAvailability(requireActivity(), ttsSupported, selectedCategory.getLevel())) {
+                SpeechAvailability.NOT_AVAILABLE -> speechNotSupportedAlert(requireActivity(), selectedCategory.getLevel()) {
                     updateVoicesDownloadVisibility()
                 }
                 else -> mpresenter.quizTypeSwitch(QuizType.TYPE_AUDIO)
@@ -194,31 +193,31 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
         }
 
         binding.playLow.setOnClickListener {
-            openContent(selectedCategory, Level.LOW)
+            openContent(QuizzesPagerAdapter.positionFromCategory(selectedCategory), Level.LOW)
         }
         binding.playMedium.setOnClickListener {
-            openContent(selectedCategory, Level.MEDIUM)
+            openContent(QuizzesPagerAdapter.positionFromCategory(selectedCategory), Level.MEDIUM)
         }
         binding.playHigh.setOnClickListener {
-            openContent(selectedCategory, Level.HIGH)
+            openContent(QuizzesPagerAdapter.positionFromCategory(selectedCategory), Level.HIGH)
         }
         binding.playMaster.setOnClickListener {
-            openContent(selectedCategory, Level.MASTER)
+            openContent(QuizzesPagerAdapter.positionFromCategory(selectedCategory), Level.MASTER)
         }
 
         updateVoicesDownloadVisibility()
 
         binding.download.setOnClickListener {
             requireContext().alertDialog {
-                if (getLevelDownloadVersion(getCategoryLevel(selectedCategory)) > 0 && previousVoicesDownloaded(getLevelDownloadVersion(getCategoryLevel(selectedCategory)))) {
+                if (getLevelDownloadVersion(selectedCategory.getLevel()) > 0 && previousVoicesDownloaded(getLevelDownloadVersion(selectedCategory.getLevel()))) {
                     titleResource = R.string.update_voices_alert
-                    message = getString(R.string.update_voices_alert_message, getLevelDownloadSize(getCategoryLevel(selectedCategory)))
+                    message = getString(R.string.update_voices_alert_message, getLevelDownloadSize(selectedCategory.getLevel()))
                 } else {
                     titleResource = R.string.download_voices_alert
-                    message = getString(R.string.download_voices_alert_message, getLevelDownloadSize(getCategoryLevel(selectedCategory)))
+                    message = getString(R.string.download_voices_alert_message, getLevelDownloadSize(selectedCategory.getLevel()))
                 }
                 okButton {
-                    (activity as QuizzesActivity).voicesDownload(getCategoryLevel(selectedCategory)) {
+                    (activity as QuizzesActivity).voicesDownload(selectedCategory.getLevel()) {
                         binding.download.visibility = GONE
                     }
                 }
@@ -232,16 +231,17 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
 
     private fun updateVoicesDownloadVisibility() {
         val pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
-        if (selectedCategory == -1 || selectedCategory == 8
+        if (selectedCategory == Category.SELECTIONS
                 || pref.getBoolean(Prefs.VOICE_DOWNLOADED_LEVEL_V.pref +
-                        "${getLevelDownloadVersion(getCategoryLevel(selectedCategory))}_${getCategoryLevel(selectedCategory)}", false)) {
+                        "${getLevelDownloadVersion(selectedCategory.getLevel())}_${selectedCategory.getLevel()}", false)) {
             binding.download.visibility = GONE
         } else {
             binding.download.visibility = VISIBLE
-            if (getLevelDownloadVersion(getCategoryLevel(selectedCategory)) > 0 && previousVoicesDownloaded(getLevelDownloadVersion(getCategoryLevel(selectedCategory)))) {
-                binding.download.text = getString(R.string.update_voices, getLevelDownloadSize(getCategoryLevel(selectedCategory)))
+            if (getLevelDownloadVersion(selectedCategory.getLevel()) > 0
+                && previousVoicesDownloaded(getLevelDownloadVersion(selectedCategory.getLevel()))) {
+                binding.download.text = getString(R.string.update_voices, getLevelDownloadSize(selectedCategory.getLevel()))
             } else {
-                binding.download.text = getString(R.string.download_voices, getLevelDownloadSize(getCategoryLevel(selectedCategory)))
+                binding.download.text = getString(R.string.download_voices, getLevelDownloadSize(selectedCategory.getLevel()))
             }
         }
     }
@@ -249,7 +249,7 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
     private fun previousVoicesDownloaded(downloadVersion: Int): Boolean {
         val pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
         return (0 until downloadVersion).any {
-            pref.getBoolean("${Prefs.VOICE_DOWNLOADED_LEVEL_V.pref}${it}_${getCategoryLevel(selectedCategory)}", false)
+            pref.getBoolean("${Prefs.VOICE_DOWNLOADED_LEVEL_V.pref}${it}_${selectedCategory.getLevel()}", false)
         }
     }
 
@@ -324,7 +324,7 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
     }
 
     override fun displayQuizzes(quizzes: List<Quiz>) {
-        adapter.replaceData(quizzes, selectedCategory == Categories.CATEGORY_SELECTIONS)
+        adapter.replaceData(quizzes, selectedCategory == Category.SELECTIONS)
     }
 
     private fun openContent(position: Int, level: Level?) {
@@ -338,7 +338,7 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
     }
 
     override fun displayNoData() {
-        adapter.replaceData(listOf(), selectedCategory == Categories.CATEGORY_SELECTIONS)
+        adapter.replaceData(listOf(), selectedCategory == Category.SELECTIONS)
         animateSeekBar(binding.seekLow, 0, 0, 0)
         binding.textLow.text = 0.toString()
         animateSeekBar(binding.seekMedium, 0, 0, 0)
@@ -359,7 +359,7 @@ class QuizzesFragment(di: DI) : Fragment(), QuizzesContract.View, QuizzesAdapter
     }
 
     override fun onItemLongClick(position: Int) {
-        if (selectedCategory != Categories.CATEGORY_SELECTIONS) {
+        if (selectedCategory != Category.SELECTIONS) {
             // TODO propose to add all words to selections
             return
         }

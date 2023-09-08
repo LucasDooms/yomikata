@@ -56,6 +56,8 @@ class QuizItemPagerAdapter(private val context: Context, private val callback: C
     class ViewHolder(binding: VhQuizItemBinding) : RecyclerView.ViewHolder(binding.root) {
         val wholeSentenceLayout = binding.wholeSentenceLayout
         val btnFuri = binding.btnFuri
+        /** if you want to change the visibility of btnTrad, use this **/
+        val btnTradContainer = binding.containerBtnTrad
         val btnTrad = binding.btnTrad
         val btnCopy = binding.btnCopy
         val btnSelection = binding.btnSelection
@@ -104,7 +106,7 @@ class QuizItemPagerAdapter(private val context: Context, private val callback: C
         when (words[position].second) {
             QuizType.TYPE_PRONUNCIATION, QuizType.TYPE_PRONUNCIATION_QCM, QuizType.TYPE_JAP_EN -> {
                 holder.sound.visibility = View.GONE
-                holder.btnTrad.visibility = View.VISIBLE
+                holder.btnTradContainer.visibility = View.VISIBLE
                 holder.tradSentence.visibility = View.VISIBLE
                 holder.tradSentence.textSize = 16f
                 holder.tradSentence.setTextColor(ContextCompat.getColor(context, R.color.lighter_gray))
@@ -124,25 +126,37 @@ class QuizItemPagerAdapter(private val context: Context, private val callback: C
                         if (colorEntireWord) sentence.jap.length else wordTruePosition + word.japanese.length,
                         getWordColor(context, word.points))
                 }
-                holder.btnTrad.visibility = if (words[position].second != QuizType.TYPE_JAP_EN) View.VISIBLE else View.GONE
+                holder.btnTradContainer.visibility = if (words[position].second != QuizType.TYPE_JAP_EN) View.VISIBLE else View.GONE
                 holder.tradSentence.text = if (words[position].first.isKana == 2) "" else sentence.getTrad()
                 holder.tradSentence.visibility = if (holder.btnTrad.isSelected && words[position].second != QuizType.TYPE_JAP_EN) View.VISIBLE else View.INVISIBLE
             }
             QuizType.TYPE_EN_JAP -> {
+// <<<<<<< Clean-Database-Words
+                sound.visibility = View.GONE
+                btnFuri.visibility = View.VISIBLE
+                furiSentence.visibility = View.INVISIBLE
+                btnTrad.visibility = View.GONE
+                tradSentence.visibility = View.VISIBLE
+                tradSentence.movementMethod = ScrollingMovementMethod()
+                tradSentence.setTextColor(getWordColor(context, word.points))
+                tradSentence.textSize = PreferenceManager.getDefaultSharedPreferences(context).getString("font_size", "18")!!.toFloat()
+                tradSentence.text = word.getTrad().cleanForQCM(false)
+/** =======
                 holder.sound.visibility = View.GONE
                 holder.btnFuri.visibility = View.VISIBLE
                 holder.furiSentence.visibility = View.INVISIBLE
-                holder.btnTrad.visibility = View.GONE
+                holder.btnTradContainer.visibility = View.GONE
                 holder.tradSentence.visibility = View.VISIBLE
                 holder.tradSentence.movementMethod = ScrollingMovementMethod()
                 holder.tradSentence.setTextColor(getWordColor(context, word.points))
                 holder.tradSentence.textSize = PreferenceManager.getDefaultSharedPreferences(context).getString("font_size", "18")!!.toFloat()
                 holder.tradSentence.text = word.getTrad().cleanForQCM()
+**/ >>>>>>> develop
             }
             QuizType.TYPE_AUDIO -> {
                 holder.sound.visibility = View.VISIBLE
                 holder.furiSentence.visibility = View.GONE
-                holder.btnTrad.visibility = View.GONE
+                holder.btnTradContainer.visibility = View.GONE
                 holder.btnFuri.visibility = View.GONE
                 holder.btnTts.visibility = View.GONE
                 holder.sound.setColorFilter(getWordColor(context, word.points))

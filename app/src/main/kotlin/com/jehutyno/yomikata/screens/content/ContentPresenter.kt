@@ -12,6 +12,7 @@ import com.jehutyno.yomikata.presenters.WordCountInterface
 import com.jehutyno.yomikata.presenters.WordInQuizInterface
 import com.jehutyno.yomikata.repository.StatsRepository
 import com.jehutyno.yomikata.repository.WordRepository
+import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.Level
 import mu.KLogging
 import java.util.Calendar
@@ -48,10 +49,10 @@ class ContentPresenter(
      *
      * @param category Category that was launched
      */
-    override suspend fun launchQuizStat(category: Int) {
+    override suspend fun launchQuizStat(category: Category) {
         statsRepository.addStatEntry(
             StatAction.LAUNCH_QUIZ_FROM_CATEGORY,
-            category.toLong(),
+            category.index.toLong(),
             Calendar.getInstance().timeInMillis,
             StatResult.OTHER)
     }
