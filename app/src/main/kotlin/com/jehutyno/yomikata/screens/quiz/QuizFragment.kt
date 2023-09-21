@@ -598,7 +598,7 @@ class QuizFragment(private val di: DI) : Fragment(), QuizContract.View, QuizItem
         adapter!!.notifyItemChanged(position, QuizItemPagerAdapter.PlayAnimation())
     }
 
-    override fun showAlertProgressiveSessionEnd(proposeErrors: Boolean) {
+    override fun showAlertProgressiveSessionEnd() {
         val sessionLength = adapter!!.words.size
 
         requireContext().alertDialog {

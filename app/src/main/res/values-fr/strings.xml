@@ -259,4 +259,9 @@
     <string name="level_down">diminuer le niveau</string>
     <string name="level_up">augmenter le niveau</string>
     <string name="select">Sélectionner</string>
+    <string name="level_up">Niveau supérieur</string>
+    <string name="level_down">Niveau inférieur</string>
+    <string name="level_up_words">Niveau supérieur à %1$d mots?</string>
+    <string name="level_down_words">Niveau inférieur à %1$d mots ?</string>
+    <string name="words_from_to">%1$d mots de %2$s en %3$s</string>
 </resources>

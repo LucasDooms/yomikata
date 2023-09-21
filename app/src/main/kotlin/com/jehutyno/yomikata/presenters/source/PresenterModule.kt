@@ -1,5 +1,6 @@
 package com.jehutyno.yomikata.presenters.source
 
+import com.jehutyno.yomikata.presenters.LevelInterface
 import com.jehutyno.yomikata.presenters.SelectionsInterface
 import com.jehutyno.yomikata.presenters.WordCountInterface
 import com.jehutyno.yomikata.presenters.WordInQuizInterface
@@ -23,4 +24,5 @@ fun presenterModule() = DI.Module("presenterModule") {
         quizIdsFlow: Flow<LongArray> -> WordCountPresenter(instance(), quizIdsFlow)
     }
     bind<WordInQuizInterface>() with provider { WordInQuizPresenter(instance()) }
+    bind<LevelInterface>() with provider { LevelPresenter(instance()) }
 }

@@ -126,15 +126,13 @@ class QuizPresenter(
     /** Active count to keep track of remaining words in current session.
      *  Keep in mind that a quiz could run out of words before this counter reaches 0. */
     private var sessionCount = -1
-    /** Total length of current session */
-    private var sessionLength = defaultSharedPreferences.getString("length", "10")!!.toInt()
-    /** Session length of choice in user preferences */
+    /** Session length of choice in user preferences, only used for non-error session */
     private val prefSessionLength = defaultSharedPreferences.getString("length", "10")!!.toInt()
+    /** Total length of current session */
+    private var sessionLength = prefSessionLength
 
     private var isFuriDisplayed = false
     private var previousAnswerWrong = false  // true if and only if wrong choice in the current word
-    /** True if all of the words have run out (must be false if [strategy] = PROGRESSIVE) */
-    private var quizEnded = false
 
     private val wordsFlowJob: Job
     private lateinit var words: StateFlow<List<Word>>
@@ -221,8 +219,16 @@ class QuizPresenter(
         sessionCount = savedInstanceState.getInt("session_count")
     }
 
+    /**
+     * Init quiz
+     *
+     * Called when a new list of words is needed to start a quiz.
+     *
+     * (it is never called in errorMode)
+     */
     override suspend fun initQuiz() {
-        sessionCount = prefSessionLength
+        wordHandler.reset()     // make sure list index is reset
+
         wordHandler.quizWords = when (strategy) {
             QuizStrategy.PROGRESSIVE -> {
                 getNextProgressiveWords()
@@ -233,6 +239,24 @@ class QuizPresenter(
             }
         }
         quizView.displayWords(quizWords)
+
+        // To be sure the session length is not bigger than the number of words
+        sessionLength = prefSessionLength.coerceAtMost(quizWords.size)
+
+        if (prefSessionLength == -1) {
+            // -1 => infinite session
+            if (strategy == QuizStrategy.PROGRESSIVE) {
+                // set length, count to 1
+                sessionLength = 1
+                quizView.incrementInfiniteCount()
+            } else {
+                // use size
+                sessionLength = quizWords.size
+            }
+        }
+
+        sessionCount = sessionLength    // initialize count
+
         setUpNextQuiz()
     }
 
@@ -249,15 +273,13 @@ class QuizPresenter(
             quizView.noWords()
             return listOf()
         }
-        wordHandler.quizWords =
-            createWordTypePair(
-                if (strategy == QuizStrategy.SHUFFLE)
-                    words.shuffled()
-                else
-                    words
-            )
 
-        return quizWords
+        return createWordTypePair(
+            if (strategy == QuizStrategy.SHUFFLE)
+                words.shuffled()
+            else
+                words
+        )
     }
 
     /**
@@ -411,10 +433,6 @@ class QuizPresenter(
      * @return The original Words paired with a random [QuizType] (see [getQuizType])
      */
     private fun createWordTypePair(words: List<Word>): List<Pair<Word, QuizType>> {
-        if (words.size < sessionLength || words.size < sessionCount) {
-            sessionLength = words.size // To be sure the session length is not bigger than the number of words
-            sessionCount = words.size
-        }
         return words.map { word ->
             Pair(word, getQuizType(word))
         }
@@ -507,10 +525,13 @@ class QuizPresenter(
         val result = checkWord(word, quizType, answer)
         updateRepetitionAndPoints(word, quizType, result)
         if (!wordHandler.errorMode) {
-            addCurrentWordToAnswers(answer)
-            // add to errors if answer is wrong, but is not a repeated mistake
-            if (!result && !previousAnswerWrong) {
-                errors.add(Pair(word, quizType))
+            if (!previousAnswerWrong) {
+                // add to answers list if this is the first time answering
+                addCurrentWordToAnswers(answer, result)
+                if (!result) {
+                    // add to errors if answer is wrong, but is not a repeated mistake
+                    errors.add(Pair(word, quizType))
+                }
             }
             saveAnswerResultStat(word, result)
         }
@@ -547,7 +568,6 @@ class QuizPresenter(
             quizView.speakWord(wordHandler.getCurrentWord(), false)
 
         quizView.animateCheck(result)
-
     }
 
     override fun onEditActionClick() {
@@ -568,30 +588,28 @@ class QuizPresenter(
      * @return True if answer matches word, False otherwise.
      */
     private fun checkWord(word: Word, quizType: QuizType, answer: String): Boolean {
-        var result = false
-
         when (quizType) {
             QuizType.TYPE_JAP_EN -> {
-                result = word.getTrad().trim() == answer
+                return word.getTrad().trim() == answer
             }
             QuizType.TYPE_EN_JAP -> {
-                result = word.japanese.trim() == answer
+                return word.japanese.trim() == answer
             }
             else -> {
                 word.reading.split("/").forEach {
                     if (it.trim() == answer.trim().replace("-", "ー")) {
-                        result = true
+                        return true
                     }
                 }
                 word.reading.split(";").forEach {
                     if (it.trim() == answer.trim().replace("-", "ー")) {
-                        result = true
+                        return true
                     }
                 }
             }
         }
 
-        return result
+        return false
     }
 
     /**
@@ -621,7 +639,6 @@ class QuizPresenter(
 
         // update database word
         updateWordPoints(word.id, newPoints)
-        updateWordLevel(word.id, newLevel)
         updateRepetitions(word.id, newRepetition)
         if (result)
             wordRepository.incrementSuccess(word.id)
@@ -639,14 +656,14 @@ class QuizPresenter(
             word.countFail++
     }
 
-    private fun addCurrentWordToAnswers(answer: String) {
+    private fun addCurrentWordToAnswers(answer: String, result: Boolean) {
         val word = wordHandler.getCurrentWord()
-        val color = if (!previousAnswerWrong) "#77d228" else "#d22828'"
+        val color = if (result) "#77d228" else "#d22828"
         if (answers.size > 0 && answers[0].wordId == word.id) {
             answers[0].answer += "<br><font color='$color'>$answer</font>"
         } else {
             answers.add(0, Answer(
-                if (previousAnswerWrong) 0 else 1,
+                if (result) 1 else 0,
                 "<font color='$color'>$answer</font>",
                 word.id,
                 currentSentence.id,
@@ -668,30 +685,31 @@ class QuizPresenter(
         previousAnswerWrong = false
         quizView.reInitUI()
 
-        if (!wordHandler.errorMode) {
-            quizEnded =
-                if (strategy == QuizStrategy.PROGRESSIVE) false
-                else wordHandler.currentItem >= quizWords.size - 1
-        }
-        // warning: sessionCount may be -1, in which case the session should not end
-        // so do not use sessionCount > 0.
-        if (sessionCount != 0 && (wordHandler.errorMode || !quizEnded)) {
-            // not the end of the session -> keep going
-            setUpNextQuiz()
-            return
-        }
+        // set to true if normal words have run out
+        val quizEnded = wordHandler.currentItem >= quizWords.size - 1
+
+        // handle errorMode
         if (wordHandler.errorMode) {
-            quizView.showAlertErrorSessionEnd(quizEnded)
+            // check if you have reached the end of error list
+            if (wordHandler.currentItemErrorMode >= errors.size - 1) {
+                quizView.showAlertErrorSessionEnd(quizEnded)
+            } else {
+                setUpNextQuiz()
+            }
             return
         }
+
+        // handle progressive session first, since they do not have a normal quiz end
         if (strategy == QuizStrategy.PROGRESSIVE) {
-            if (prefSessionLength == -1)    // infinite session -> continuously load new session
+            // check if infinite session (only for progressive, since other strategies
+            // set sessionCount = size, so they are not really infinite)
+            if (prefSessionLength == -1) {
+                // infinite session -> continuously load new session
                 onLaunchNextProgressiveSession()
-            else
-                quizView.showAlertProgressiveSessionEnd(errors.size > 0)
-            return
+                return
+            }
         }
-        if (quizEnded) {
+        else if (quizEnded) {   // this is mutually exclusive with progressive strategy
             // quiz has completely ended -> replace errors with ALL previous errors
             // use answers with result == 0 <-> error
             wordHandler.errors.clear()
@@ -701,47 +719,48 @@ class QuizPresenter(
             return
         }
 
-        // non-progressive quiz, end of session
-        quizView.showAlertNonProgressiveSessionEnd(errors.size > 0)
+        if (sessionCount == 0) {
+            // end of session
+            sessionCount = sessionLength    // reset count
+            if (strategy == QuizStrategy.PROGRESSIVE) {
+                quizView.showAlertProgressiveSessionEnd()
+            } else {
+                quizView.showAlertNonProgressiveSessionEnd(errors.size > 0)
+            }
+            return
+        }
+
+        // not the end of the session -> keep going
+        setUpNextQuiz()
     }
 
     override suspend fun onLaunchErrorSession() {
         wordHandler.errorMode = true
         wordHandler.reset()
-        sessionCount = errors.size
-        quizView.displayWords(errors.shuffled())
+        errors.shuffle()
+        quizView.displayWords(errors)
         setUpNextQuiz()
     }
 
     override suspend fun onLaunchNextProgressiveSession() {
-        sessionCount = quizWords.size.coerceAtMost(prefSessionLength)
-        wordHandler.reset()
-        initQuiz()
+        initQuiz()  // this is only called when you've run out of words => re-initialize
     }
-
 
     override suspend fun onContinueQuizAfterErrorSession() {
         wordHandler.errorMode = false
         wordHandler.errors.clear()
-        sessionCount = quizWords.size.coerceAtMost(prefSessionLength)
-        if (strategy == QuizStrategy.PROGRESSIVE) {
-            wordHandler.quizWords = getNextProgressiveWords()
-            wordHandler.reset()
-        }
         quizView.displayWords(quizWords)
         setUpNextQuiz()
     }
 
     override suspend fun onContinueAfterNonProgressiveSessionEnd() {
-        wordHandler.errorMode = false
         wordHandler.errors.clear()
-        sessionCount = quizWords.size.coerceAtMost(prefSessionLength)
         setUpNextQuiz()
     }
 
     override suspend fun onRestartQuiz() {
         wordHandler.errorMode = false
-        wordHandler.reset()
+        wordHandler.errors.clear()
         answers.clear()
         initQuiz()
     }
@@ -754,10 +773,6 @@ class QuizPresenter(
 
     override suspend fun updateWordPoints(wordId: Long, points: Int) {
         wordRepository.updateWordPoints(wordId, points)
-    }
-
-    override suspend fun updateWordLevel(wordId: Long, level: Level) {
-        wordRepository.updateWordLevel(wordId, level)
     }
 
     override suspend fun getRandomWords(wordId: Long, answer: String, wordSize: Int, limit: Int, quizType: QuizType): ArrayList<Word> {
@@ -790,10 +805,6 @@ class QuizPresenter(
                 words.clear()
                 words.add(first)
             }
-            // set length, count to 1
-            sessionLength = 1
-            sessionCount = 1
-            quizView.incrementInfiniteCount()
         }
 
         words.shuffle()

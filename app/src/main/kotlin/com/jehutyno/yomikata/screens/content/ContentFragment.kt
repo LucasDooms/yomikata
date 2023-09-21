@@ -25,6 +25,7 @@ import com.jehutyno.yomikata.model.Word
 import com.jehutyno.yomikata.screens.quiz.QuizActivity
 import com.jehutyno.yomikata.screens.word.WordDetailDialogFragment
 import com.jehutyno.yomikata.screens.word.WordsAdapter
+import com.jehutyno.yomikata.util.Categories
 import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.Extras
 import com.jehutyno.yomikata.util.Level
@@ -64,7 +65,7 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
         bind<ContentContract.Presenter>() with provider {
             ContentPresenter (
                 instance(), instance(),
-                instance(arg = lifecycleScope), instance(arg = quizIds), instance(),
+                instance(arg = lifecycleScope), instance(), instance(arg = quizIds), instance(),
                 quizIds, level
             )
         }
@@ -93,8 +94,10 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
 
         requireArguments().also { args ->
             quizIds = args.getLongArray(Extras.EXTRA_QUIZ_IDS)!!
-            selection = args.getSerializableHelper(Extras.EXTRA_SELECTION, Quiz::class.java)
             category = args.getSerializableHelper(Extras.EXTRA_CATEGORY, Category::class.java)!!
+            if (category == Categories.CATEGORY_SELECTIONS) {
+                selection = args.getSerializableHelper(Extras.EXTRA_SELECTION, Quiz::class.java)
+            }
             selectedTypes = args.getParcelableArrayListHelper(Extras.EXTRA_QUIZ_TYPES, QuizType::class.java)!!
         }
 
@@ -104,7 +107,7 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
 
         adapter = WordsAdapter(requireActivity(), this)
         actionModeCallback = WordSelectorActionModeCallback (
-            ::requireActivity, adapter, mpresenter, selection
+            ::requireActivity, adapter, mpresenter, mpresenter, selection
         ) { actionMode = null }
         setHasOptionsMenu(true)
     }
@@ -170,7 +173,7 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
     }
 
     override fun displayWords(words: List<Word>) {
-        adapter.replaceData(words)
+        adapter.submitList(words)
     }
 
 
@@ -226,7 +229,7 @@ abstract class ContentFragment(private val di: DI) : Fragment(), ContentContract
                     allWordIds
                 else {
                     // if actionMode -> use currently selected words to start quiz
-                    val currentlySelectedIds = adapter.items
+                    val currentlySelectedIds = adapter.currentList
                         .filter{ it.isSelected.toBool() }.map{ it.id }.toLongArray()
                     if (currentlySelectedIds.isEmpty())
                         allWordIds // but if no words are selected, use all words in quiz anyway

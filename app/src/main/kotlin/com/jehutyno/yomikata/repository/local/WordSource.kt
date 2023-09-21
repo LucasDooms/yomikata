@@ -10,9 +10,10 @@ import com.jehutyno.yomikata.util.Category
 import com.jehutyno.yomikata.util.HiraganaUtils
 import com.jehutyno.yomikata.util.Level
 import com.jehutyno.yomikata.util.QuizType
+import com.jehutyno.yomikata.util.getLevelFromPoints
 import com.jehutyno.yomikata.util.getNextLevel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.security.InvalidParameterException
 
 
 /**
@@ -55,9 +56,6 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
         }
 
         val levelsArray = arrayListOf(level)
-        // includes maxed words together with previous category
-        if (level != Level.MAX && getNextLevel(level) == Level.MAX)
-            levelsArray.add(Level.MAX)
 
         val roomWordsList = wordDao.getWordsByLevels(quizIds, levelsArray.map { it.level }.toIntArray())
         return roomWordsList.map { list ->
@@ -162,12 +160,31 @@ class WordSource(private val wordDao: WordDao) : WordRepository {
             wordDao.deleteWord(roomWord)
     }
 
+    /**
+     * Update word points
+     *
+     * Updates the words Points and associated Level
+     */
     override suspend fun updateWordPoints(wordId: Long, points: Int) {
-        wordDao.updateWordPoints(wordId, points)
+        wordDao.updateWordLevelAndPoints(wordId, getLevelFromPoints(points).level, points)
     }
 
     override suspend fun updateWordLevel(wordId: Long, level: Level) {
         wordDao.updateWordLevel(wordId, level.level)
+    }
+
+    /**
+     * Update word points
+     *
+     * Updates the words Points and associated Level
+     */
+    override suspend fun updateWordPoints(wordIds: LongArray, points: IntArray) {
+        if (wordIds.size != points.size) {
+            throw InvalidParameterException("wordIds and points Array sizes do not match: " +
+                    "${wordIds.size} != ${points.size}")
+        }
+        val levels = points.map { getLevelFromPoints(it).level }.toIntArray()
+        wordDao.updateWordLevelAndPoints(wordIds, levels, points)
     }
 
     override suspend fun updateWordRepetition(wordId: Long, repetition: Int) {

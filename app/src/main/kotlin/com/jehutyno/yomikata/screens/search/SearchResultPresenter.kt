@@ -6,6 +6,7 @@ import androidx.lifecycle.asFlow
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.distinctUntilChanged
 import com.jehutyno.yomikata.model.Word
+import com.jehutyno.yomikata.presenters.LevelInterface
 import com.jehutyno.yomikata.presenters.SelectionsInterface
 import com.jehutyno.yomikata.presenters.WordInQuizInterface
 import com.jehutyno.yomikata.repository.WordRepository
@@ -19,9 +20,10 @@ import mu.KLogging
  */
 class SearchResultPresenter(
     wordRepository : WordRepository,
-    selectionsInterface: SelectionsInterface,
+    selectionsInterface: SelectionsInterface, levelInterface: LevelInterface,
     wordInQuizInterface: WordInQuizInterface) : SearchResultContract.Presenter,
-            SelectionsInterface by selectionsInterface, WordInQuizInterface by wordInQuizInterface {
+            SelectionsInterface by selectionsInterface, LevelInterface by levelInterface,
+            WordInQuizInterface by wordInQuizInterface {
 
 
     companion object : KLogging()

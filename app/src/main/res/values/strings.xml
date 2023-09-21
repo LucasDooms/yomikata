@@ -254,6 +254,11 @@
     <string name="translate_to_japanese_hint">Translate to Japanese</string>
     <string name="translate_to_english_hint">Translate to English</string>
     <string name="remove_x_words">Remove %d words?</string>
+    <string name="level_up">Level up</string>
+    <string name="level_down">Level down</string>
+    <string name="level_up_words">Level up %1$d words?</string>
+    <string name="level_down_words">Level down %1$d words?</string>
+    <string name="words_from_to">%1$d words from %2$s to %3$s</string>
     <string name="unknown_error">Something went wrong</string>
     <string name="check_mark_description">correct</string>
     <string name="reset_volume">reset volume</string>

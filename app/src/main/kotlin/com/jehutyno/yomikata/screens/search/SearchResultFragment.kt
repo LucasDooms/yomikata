@@ -40,7 +40,7 @@ class SearchResultFragment(private val di: DI) : Fragment(), SearchResultContrac
     private val subDI by DI.lazy {
         extend(di)
         bind<SearchResultContract.Presenter>() with provider {
-            SearchResultPresenter(instance(), instance(arg = lifecycleScope), instance())
+            SearchResultPresenter(instance(), instance(arg = lifecycleScope), instance(), instance())
         }
     }
     private val searchResultPresenter : SearchResultContract.Presenter by subDI.instance()
@@ -54,7 +54,7 @@ class SearchResultFragment(private val di: DI) : Fragment(), SearchResultContrac
 
         adapter = WordsAdapter(requireActivity(), this)
         actionModeCallback = WordSelectorActionModeCallback (
-            ::requireActivity, adapter, searchResultPresenter, null
+            ::requireActivity, adapter, searchResultPresenter, searchResultPresenter, null
         )
         layoutManager = GridLayoutManager(context, 2)
 
@@ -93,7 +93,7 @@ class SearchResultFragment(private val di: DI) : Fragment(), SearchResultContrac
     }
 
     override fun displayResults(words: List<Word>) {
-        adapter.replaceData(words)
+        adapter.submitList(words)
     }
 
     override fun displayNoResults() {

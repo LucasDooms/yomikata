@@ -8,6 +8,8 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.BlendModeColorFilterCompat
 import androidx.core.graphics.BlendModeCompat
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.jehutyno.yomikata.R
 import com.jehutyno.yomikata.databinding.VhWordShortBinding
@@ -18,15 +20,41 @@ import com.jehutyno.yomikata.util.toBool
 import com.jehutyno.yomikata.util.toInt
 
 
+private val DIFF_CALLBACK = object: DiffUtil.ItemCallback<Word>() {
+    override fun areItemsTheSame(oldWord: Word, newWord: Word): Boolean {
+        return oldWord.id == newWord.id
+    }
+    override fun areContentsTheSame(oldWord: Word, newWord: Word): Boolean {
+        return oldWord == newWord
+    }
+}
 /**
  * Created by valentin on 04/10/2016.
  */
 class WordsAdapter(private val context: Context, private val callback: Callback)
-    : RecyclerView.Adapter<WordsAdapter.ViewHolder>() {
+    : ListAdapter<Word, WordsAdapter.ViewHolder>(DIFF_CALLBACK) {
 
-    var items: MutableList<Word> = arrayListOf()
+    private var checkMode = false
 
-    var checkMode = false
+    fun setCheckMode(check: Boolean) {
+        checkMode = check
+        notifyItemRangeChanged(0, currentList.size)
+    }
+
+    override fun submitList(list: List<Word>?) {
+        // change the isSelected to the current value,
+        // since it is not persisted in the database
+        val newList = list?.let { newWords ->
+            val groupById = currentList.associateBy { it.id }
+            newWords.map { word ->
+                if (word.id in groupById) {
+                    word.isSelected = groupById[word.id]!!.isSelected
+                }
+                word
+            }
+        }
+        super.submitList(newList)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -51,7 +79,7 @@ class WordsAdapter(private val context: Context, private val callback: Callback)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val word = items[position]
+        val word = currentList[position]
         holder.wordName.text = word.japanese
         holder.wordName.setTextColor(getWordColor(context, word.points))
         holder.categoryIcon.setImageResource(word.baseCategory.getSmallIcon())
@@ -75,7 +103,7 @@ class WordsAdapter(private val context: Context, private val callback: Callback)
 
         holder.checkBox.setOnCheckedChangeListener { _, isSelected ->
             callback.onCheckChange(position, isSelected)
-            items[position].isSelected = isSelected.toInt()
+            currentList[position].isSelected = isSelected.toInt()
         }
 
         holder.categoryIcon.setOnClickListener {
@@ -85,26 +113,17 @@ class WordsAdapter(private val context: Context, private val callback: Callback)
             if (!checkMode) {
                 checkMode = true
                 // notify all items changed, since checkMode affects all items
-                notifyItemRangeChanged(0, items.size)
+                notifyItemRangeChanged(0, currentList.size)
             }
         }
     }
 
     override fun getItemCount(): Int {
-        return items.count()
-    }
-
-    fun replaceData(list: List<Word>) {
-        items.clear()
-        items.addAll(list)
-        @Suppress("notifyDataSetChanged")
-        notifyDataSetChanged()
+        return currentList.count()
     }
 
     fun clearData() {
-        val size = items.size
-        items.clear()
-        notifyItemRangeRemoved(0, size)
+        submitList(mutableListOf())
     }
 
     class ViewHolder(binding: VhWordShortBinding) : RecyclerView.ViewHolder(binding.root) {
