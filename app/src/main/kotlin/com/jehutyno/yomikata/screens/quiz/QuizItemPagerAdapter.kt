@@ -137,7 +137,7 @@ class QuizItemPagerAdapter(private val context: Context, private val callback: C
                 holder.tradSentence.movementMethod = ScrollingMovementMethod()
                 holder.tradSentence.setTextColor(getWordColor(context, word.points))
                 holder.tradSentence.textSize = PreferenceManager.getDefaultSharedPreferences(context).getString("font_size", "18")!!.toFloat()
-                holder.tradSentence.text = word.getTrad().cleanForQCM()
+                holder.tradSentence.text = word.getTrad().cleanForQCM(false)
             }
             QuizType.TYPE_AUDIO -> {
                 holder.sound.visibility = View.VISIBLE
